@@ -261,7 +261,7 @@ input[type=text]:focus{border-color:var(--blue)}
     <div class="card-fact" id="card-fact"></div>
     <div class="card-imitate" id="card-imitate"></div>
     <div class="card-ref" id="card-ref"></div>
-    <button class="btn" style="background:var(--gold);color:#5D4037;margin-top:12px;width:100%;" onclick="closeCardDrop()">Guardar na Coleção! 🃏</button>
+    <button class="btn" id="card-drop-btn" style="background:var(--gold);color:#5D4037;margin-top:12px;width:100%;" onclick="closeCardDrop()">Guardar na Coleção! 🃏</button>
   </div>
 </div>
 
@@ -394,13 +394,17 @@ const SAINTS = [
 {n:"São Domingos Sávio",e:"😇",fact:"Morreu com apenas 14 anos. Seu lema era: 'Antes morrer que pecar'. Viveu a santidade sendo uma criança normal — brincava, estudava e amava Jesus.",imit:"Você pode ser santo sendo criança! Faça suas orações, seja obediente aos pais e professores, e, o mais importante: seja amigo de Jesus.",ref:"CIC 2013"},
 {n:"Santo Antônio",e:"👶",fact:"Franciscano português, Doutor da Igreja. Grande pregador. Conhecido como padroeiro dos pobres e 'casamenteiro'. O Menino Jesus apareceu em seus braços.",imit:"Aprenda a falar de Jesus para seus amigos, com naturalidade. Quando alguém estiver triste, fale de Deus para consolar.",ref:"CIC 2684"},
 {n:"Santa Faustina",e:"💖",fact:"Religiosa polonesa. Jesus apareceu a ela pedindo a devoção à Divina Misericórdia. A imagem de Jesus com raios vermelho e branco saindo do coração vem dessas visões.",imit:"Confie na misericórdia de Deus! Quando errar, não fuja de Deus — corra para Ele como um filho corre para o colo do pai. Repita: 'Jesus, eu confio em Vós!'",ref:"CIC 1847"},
-{n:"São Pedro",e:"🔑",fact:"Pescador simples que se tornou o primeiro Papa. Negou Jesus três vezes por medo, mas se arrependeu e foi perdoado. Morreu crucificado de cabeça para baixo por humildade.",imit:"Não tenha vergonha de se arrepender quando errar. Pedro chorou amargamente, mas Jesus o perdoou. Deus sempre perdoa quem se arrepende de verdade!",ref:"Mt 16,18-19"}
+{n:"São Pedro",e:"🔑",fact:"Pescador simples que se tornou o primeiro Papa. Negou Jesus três vezes por medo, mas se arrependeu e foi perdoado. Morreu crucificado de cabeça para baixo por humildade.",imit:"Não tenha vergonha de se arrepender quando errar. Pedro chorou amargamente, mas Jesus o perdoou. Deus sempre perdoa quem se arrepende de verdade!",ref:"Mt 16,18-19"},
+{n:"São Josemaría Escrivá",e:"📖",fact:"Fundador do Opus Dei. Ensinou que todos podem ser santos no trabalho e na vida cotidiana. 'O trabalho é caminho de santidade!'",imit:"Ofereça seus estudos e tarefas a Deus. Faça bem feito tudo o que você faz — até o dever de casa pode ser uma oração!",ref:"CIC 2427"},
+{n:"São Padre Pio de Pietrelcina",e:"🩸",fact:"Franciscano que recebeu os estigmas (as chagas de Cristo) por 50 anos. Passava horas no confessionário e lia as almas dos penitentes.",imit:"Reze todos os dias, nem que seja um pouquinho. Padre Pio dizia: 'Reze, tenha fé e não se preocupe!'",ref:"CIC 618"},
+{n:"São Joaquim",e:"👴",fact:"Avô de Jesus! Pai de Nossa Senhora. Junto com Sant'Ana, educaram Maria na fé e no amor a Deus. Padroeiro dos avós.",imit:"Ame e respeite seus avós! Visite-os, converse com eles, aprenda com a sabedoria deles. Eles são um tesouro na família.",ref:"CIC 1655"},
+{n:"São João Evangelista",e:"🦅",fact:"O 'discípulo amado', autor do quarto Evangelho e do Apocalipse. Único apóstolo que não morreu mártir. Cuidou de Maria após a cruz.",imit:"Seja um bom amigo! João era o melhor amigo de Jesus. Cultive amizades verdadeiras, baseadas no amor e na lealdade.",ref:"Jo 19,26-27"}
 ];
 
 const CATS = [...new Set(Q.map(q=>q.cat))];
 const CAT_ICONS = ['🌍','📚','✝️','⛪','📋','💧'];
 const CAT_SHORT = ['Criação','Bíblia','Jesus','Igreja','Mandamentos','Sacramentos'];
-const AVATARS = ['😇','🙏','🕊️','✝️','🌟','💒','📿','🕯️','👼','🐑','🌿','💜','🔥','⛪','🎚️'];
+const AVATARS = ['😇','🙏','🕊️','✝️','🌟','💒','📿','🕯️','👼','🐑','🌿','💜','🔥','⛪','🎚️','🧒','👦','👧','🪽','🛡️','⚜️','💒','🕊️','🌻','🎵','🪷'];
 const STORAGE = 'catquiz_v3'; // new version to avoid conflicts
 
 let GD, CP=null, CQ=null, audioCtx=null, _dropCardIdx=-1;
@@ -456,7 +460,7 @@ function renderMap(){
   document.getElementById('xp-text').textContent='Nível '+lv;
   document.getElementById('xp-next').textContent=xp+'/'+xpNext+' XP';
   document.getElementById('stat-stars').textContent=p.stars||0;
-  document.getElementById('stat-cards').textContent=(p.cards||[]).length+'/20';
+  document.getElementById('stat-cards').textContent=(p.cards||[]).length+'/24';
   document.getElementById('stat-streak').textContent=p.bestStreak||0;
   
   const completed=p.completedCats||[];
@@ -647,21 +651,36 @@ function showCardDrop(ci){_dropCardIdx=ci;const s=SAINTS[ci];
   document.getElementById('card-emoji').textContent=s.e;document.getElementById('card-name').textContent=s.n;
   document.getElementById('card-fact').textContent=s.fact;document.getElementById('card-imitate').textContent=s.imit;
   document.getElementById('card-ref').textContent='📖 '+s.ref;
+  document.getElementById('card-drop-btn').textContent='Guardar na Coleção! 🃏';
   document.getElementById('card-overlay').style.display='flex';sfxCard();}
 function closeCardDrop(){
   const ci=_dropCardIdx;document.getElementById('card-overlay').style.display='none';
   if(ci>=0){const p=GD.profiles[CP];if(!p.cards)p.cards=[];if(!p.cards.includes(ci)){p.cards.push(ci);saveData();}_dropCardIdx=-1;}
+  // Stay on current screen
+  if(document.getElementById('sc-gallery').classList.contains('active')){renderGallery();return;}
+  if(CQ){return;}/* stay on quiz */
   goToMap();}
 function renderGallery(){
   const p=GD.profiles[CP],owned=p.cards||[];
-  document.getElementById('gallery-count').textContent=owned.length+'/20 coletadas';
+  document.getElementById('gallery-count').textContent=owned.length+'/24 coletadas';
   let html='';
   for(let i=0;i<SAINTS.length;i++){
     const oo=owned.includes(i);
-    html+=`<div class="gallery-card ${oo?'owned':''}" onclick="${oo?`alert('${esc(SAINTS[i].n)}: ${esc(SAINTS[i].fact)}')`:''}" title="${oo?SAINTS[i].n+' - '+SAINTS[i].imit:'???'}">
+    html+=`<div class="gallery-card ${oo?'owned':''}" onclick="${oo?'showCardDetail('+i+')':''}" title="${oo?'Clique para ver os detalhes':'Ainda não descoberta'}">
       <span class="gc-emoji">${oo?SAINTS[i].e:'❓'}</span><span class="gc-name">${oo?SAINTS[i].n:'???'}</span>${oo?'<span class="gc-check">✅</span>':''}</div>`;
   }
-  document.getElementById('gallery-grid').innerHTML=html;
+  document.getElementById('gallery-grid').innerHTML=html;}
+
+function showCardDetail(i){
+  const s=SAINTS[i];
+  document.getElementById('card-emoji').textContent=s.e;
+  document.getElementById('card-name').textContent=s.n;
+  document.getElementById('card-fact').textContent=s.fact;
+  document.getElementById('card-imitate').textContent=s.imit;
+  document.getElementById('card-ref').textContent='📖 '+s.ref;
+  document.getElementById('card-drop-btn').textContent='Fechar ✕';
+  document.getElementById('card-overlay').style.display='flex';
+  _dropCardIdx=-1;
 }
 
 // ============ EFFECTS ============
