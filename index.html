@@ -265,6 +265,24 @@ input[type=text]:focus{border-color:var(--blue)}
   </div>
 </div>
 
+<!-- CONFIRM MODAL -->
+<div class="passage-overlay" id="confirm-overlay" style="display:none;">
+  <div class="passage-box" style="text-align:center;">
+    <div style="font-size:40px;margin-bottom:8px;">😇</div>
+    <div class="passage-title" id="confirm-title">Sair da missão?</div>
+    <p style="font-size:13px;color:#666;margin:8px 0;" id="confirm-msg">Seu progresso será salvo para continuar depois.</p>
+    <button class="btn btn-block" style="background:var(--green);color:white;" id="confirm-save" onclick="closeConfirm('save')">💾 Salvar e Sair</button>
+    <button class="btn btn-block" style="background:var(--red);color:white;" onclick="closeConfirm('discard')">🗑️ Sair sem Salvar</button>
+    <button class="btn btn-block" style="background:#EEE;color:#666;" onclick="closeConfirm('cancel')">↩️ Continuar Jogando</button>
+  </div>
+</div>
+
+<!-- COMPANION ANGEL -->
+<div id="companion" style="position:fixed;bottom:20px;right:20px;font-size:56px;z-index:100;pointer-events:none;transition:all 0.4s;opacity:0;transform:scale(0);">
+  <span id="companion-emoji">👼</span>
+  <div id="companion-speech" style="position:absolute;bottom:70px;right:0;background:white;border-radius:12px;padding:8px 14px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap;max-width:200px;display:none;"></div>
+</div>
+
 <div id="reward-overlay" class="reward-overlay"></div>
 
 <script>
@@ -480,6 +498,18 @@ function renderMap(){
   
   updateRegionInfo();
   
+  // Resume option
+  const saved=p.savedQuiz;
+  if(saved){
+    const play=document.getElementById('play-area');
+    const resumeHTML=`<div style="background:#FFF3E0;border:2px dashed #FF9800;border-radius:12px;padding:10px;margin-top:8px;text-align:center;">
+      <span style="font-size:13px;color:#E65100;">📌 Missão em andamento: ${saved.cat.replace(/^.\s*/,'')}</span><br>
+      <span style="font-size:11px;color:#888;">${saved.correct} acertos · ${saved.points} pts · pergunta ${saved.idx+1}/${saved.total}</span><br>
+      <button class="btn" style="background:#FF9800;color:white;margin-top:6px;font-size:14px;" onclick="resumeQuiz()">▶️ Retomar Missão</button>
+    </div>`;
+    play.insertAdjacentHTML('beforeend',resumeHTML);
+  }
+  
   let barHtml='';
   for(let i=0;i<SAINTS.length;i++){const owned=(p.cards||[]).includes(i);barHtml+=`<span class="${owned?'':'missing'}" title="${owned?SAINTS[i].n:'???'}">${owned?SAINTS[i].e:'❓'}</span>`;}
   document.getElementById('collection-bar').innerHTML=barHtml;
@@ -585,10 +615,16 @@ function answer(el,chosen){
     const cp=GD.profiles[CP],owned=cp.cards||[],remaining=SAINTS.map((_,i)=>i).filter(i=>!owned.includes(i));
     if(remaining.length>0&&Math.random()<0.25){const ci=remaining[Math.floor(Math.random()*remaining.length)];setTimeout(()=>showCardDrop(ci),600);}
     document.getElementById('quiz-fb').innerHTML=`<div class="feedback-box correct">✅ <strong>Correto!</strong> +${pts} pts ${bonus>0?'(Bônus 🔥)':''}<br><span class="ref">${q.ref}</span></div>`;
+    const cheers=['Maravilha! 🎉','Muito bem! 🌟','Você sabe mesmo! ✨','Continue assim! 💪','Acertou em cheio! 🎯'];
+    if(CQ.streak>=5)companionSay('😇',cheers[Math.floor(Math.random()*cheers.length)],2000);
+    else if(CQ.streak===3)companionSay('👼','Três seguidas! Incrível! 🔥',2200);
+    if(Math.random()<0.15)setTimeout(showScene,400);
   }else{
     CQ.streak=0;CQ.wrong++;sfxWrong();
     document.getElementById('streak-disp').textContent='🔥 0';document.getElementById('streak-disp').classList.remove('on-fire');
     document.getElementById('quiz-fb').innerHTML=`<div class="feedback-box wrong">❌ <strong>Não foi!</strong> Resposta: <strong>${esc(correct)}</strong><br><span class="ref">${q.ref}</span></div>`;
+    const enc=['Não desanime! 💪','Leia a passagem 📖','Da próxima você consegue! 🙏','Errar faz parte ✨'];
+    companionSay('😇',enc[Math.floor(Math.random()*enc.length)],2200);
   }
   document.getElementById('quiz-score').textContent=CQ.points+' pts';
   document.getElementById('quiz-prog').style.width=((CQ.idx+1)/CQ.questions.length*100)+'%';
@@ -688,7 +724,82 @@ function spawnParticles(el){const r=el.getBoundingClientRect(),cx=r.left+r.width
 function comboPopup(streak){const d=document.createElement('div');d.className='combo-popup';d.textContent=streak+'x COMBO! 🔥';document.body.appendChild(d);setTimeout(()=>d.remove(),900);}
 function spawnRewardStars(){const c=document.getElementById('reward-overlay'),em=['⭐','🌟','✨','💫','🎉','🎊','🏆','💎'];for(let i=0;i<12;i++){const s=document.createElement('span');s.className='reward-star';s.textContent=em[Math.floor(Math.random()*em.length)];s.style.left=(15+Math.random()*70)+'%';s.style.top=(30+Math.random()*40)+'%';s.style.animationDelay=Math.random()*0.6+'s';s.style.fontSize=(24+Math.random()*28)+'px';c.appendChild(s);setTimeout(()=>s.remove(),1800);}}
 
-function confirmQuit(){if(CQ&&!CQ.answered&&CQ.idx>0){if(!confirm('Sair? Progresso perdido.'))return;}CQ=null;showSc('sc-map');renderMap();}
+function confirmQuit(){
+  if(!CQ){showSc('sc-map');renderMap();return;}
+  if(CQ.idx===0){CQ=null;showSc('sc-map');renderMap();return;}
+  document.getElementById('confirm-overlay').style.display='flex';
+  document.getElementById('confirm-save').style.display='block';
+  document.getElementById('confirm-msg').textContent='Seu progresso será salvo para continuar depois.';
+}
+
+function closeConfirm(action){
+  document.getElementById('confirm-overlay').style.display='none';
+  if(action==='cancel')return;
+  if(action==='save'&&CQ){
+    const p=GD.profiles[CP];
+    p.savedQuiz={cat:CQ.cat, catIdx:CQ.catIdx, idx:CQ.idx, correct:CQ.correct, wrong:CQ.wrong, points:CQ.points, streak:CQ.streak, maxStreak:CQ.maxStreak, qIds:CQ.questions.map(q=>q.id), total:CQ.questions.length};
+    saveData();
+  }
+  CQ=null;showSc('sc-map');renderMap();
+}
+
+function companionSay(emoji,msg,dur=2500){
+  const c=document.getElementById('companion');
+  document.getElementById('companion-emoji').textContent=emoji;
+  document.getElementById('companion-speech').textContent=msg;
+  document.getElementById('companion-speech').style.display='block';
+  c.style.opacity='1';c.style.transform='scale(1)';
+  setTimeout(()=>{document.getElementById('companion-speech').style.display='none';c.style.opacity='0';c.style.transform='scale(0)';},dur);
+}
+
+// SCENE CARDS between questions
+const SCENES = [
+  {title:'🌄 Monte Sinai',desc:'Onde Deus entregou os 10 Mandamentos a Moisés. O monte tremia e fumegava!'},
+  {title:'🏛️ Templo de Jerusalém',desc:'Construído pelo Rei Salomão. O lugar mais sagrado de Israel.'},
+  {title:'🌊 Mar da Galileia',desc:'Onde Jesus acalmou a tempestade e caminhou sobre as águas.'},
+  {title:'🕊️ Rio Jordão',desc:'Onde João Batista batizou Jesus e o Espírito Santo desceu como pomba.'},
+  {title:'⛪ Cenáculo',desc:'O lugar da Última Ceia e onde o Espírito Santo desceu em Pentecostes.'},
+  {title:'🕯️ Gruta de Belém',desc:'O humilde local onde nasceu o Salvador do mundo.'},
+  {title:'🗿 Monte das Oliveiras',desc:'Onde Jesus rezou antes da Paixão e de onde subiu ao Céu.'},
+  {title:'🐑 Campos de Belém',desc:'Onde os pastores ouviram o anúncio dos anjos: \"Glória a Deus nas alturas!\"'},
+  {title:'🌿 Jardim do Éden',desc:'O paraíso criado por Deus para Adão e Eva, cheio de beleza e paz.'},
+  {title:'🚢 Arca de Noé',desc:'A grande embarcação que salvou Noé, sua família e os animais do Dilúvio.'},
+  {title:'🏜️ Deserto do Sinai',desc:'Onde o povo de Israel caminhou por 40 anos, guiado por Deus.'},
+  {title:'✨ Monte Tabor',desc:'Onde Jesus se transfigurou diante de Pedro, Tiago e João.'},
+];
+
+function showScene(){
+  const sc=SCENES[Math.floor(Math.random()*SCENES.length)];
+  document.getElementById('quiz-fb').innerHTML=`
+    <div class="feedback-box correct" style="text-align:center;background:#FFFDE7;border-color:#FFD700;">
+      <div style="font-size:48px;margin-bottom:8px;">${sc.title.split(' ')[0]}</div>
+      <strong>${sc.title.replace(/^.\s*/, '')}</strong>
+      <p style="font-size:12px;color:#888;margin-top:4px;">${sc.desc}</p>
+    </div>`;
+}
+
+// Resume quiz
+function resumeQuiz(){
+  const p=GD.profiles[CP];
+  const sq=p.savedQuiz;
+  if(!sq)return;
+  const questions=sq.qIds.map(id=>Q.find(q=>q.id===id)).filter(Boolean);
+  if(questions.length===0){p.savedQuiz=null;saveData();return;}
+  CQ={questions,idx:sq.idx,correct:sq.correct,wrong:sq.wrong,points:sq.points,streak:sq.streak,maxStreak:sq.maxStreak,catIdx:sq.catIdx,cat:sq.cat,answered:false,fiftyUsed:false,passageRead:false};
+  p.savedQuiz=null;saveData();
+  showSc('sc-quiz');
+  document.getElementById('streak-disp').textContent='🔥 '+CQ.streak;
+  document.getElementById('streak-disp').classList.toggle('on-fire',CQ.streak>=3);
+  document.getElementById('quiz-score').textContent=CQ.points+' pts';
+  document.getElementById('quiz-cat').textContent=CQ.cat.replace(/^.\s*/,'');
+  const powers=p.powers;
+  document.getElementById('power-bar').innerHTML=`
+    <button class="power-btn" id="pw-5050" onclick="use5050()" ${powers.fifty<=0?'disabled':''}>5️⃣0️⃣<span class="badge">${powers.fifty}</span></button>
+    <button class="power-btn" id="pw-skip" onclick="useSkip()" ${powers.skip<=0?'disabled':''}>⏭️<span class="badge">${powers.skip}</span></button>
+    <button class="power-btn" id="pw-bible" onclick="useBible()" ${powers.bible<=0?'disabled':''}>📖<span class="badge">${powers.bible}</span></button>`;
+  renderQ();
+  companionSay('👼','Vamos continuar de onde paramos! 😊');
+}
 
 // ============ INIT ============
 renderProfiles();
