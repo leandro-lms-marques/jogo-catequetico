@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌟 Jogo Catequético - Quiz da Fé</title>
+<style>
+:root {
+  --gold: #FFD700;
+  --blue: #4A90D9;
+  --green: #4CAF50;
+  --red: #E74C3C;
+  --purple: #9B59B6;
+  --bg: #FEF9E7;
+  --card: #FFFFFF;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(135deg, #FFF8E1, #E8F5E9, #E3F2FD);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+.container {
+  max-width: 700px;
+  width: 100%;
+  background: var(--card);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.container::before {
+  content: '';
+  position: absolute; top:0; left:0; right:0;
+  height: 6px;
+  background: linear-gradient(90deg, #FFD700, #FF6B6B, #4A90D9, #4CAF50, #9B59B6, #FFD700);
+}
+
+/* Screens */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* Profile Selection */
+.profiles-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin: 20px 0;
+}
+.profile-card {
+  background: #F5F5F5;
+  border: 3px solid #E0E0E0;
+  border-radius: 16px;
+  padding: 16px 12px;
+  cursor: pointer;
+  text-align: center;
+  min-width: 110px;
+  transition: all 0.2s;
+  flex: 1;
+  max-width: 160px;
+}
+.profile-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+.profile-card.selected {
+  border-color: var(--blue);
+  background: #E3F2FD;
+}
+.profile-card .avatar {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 4px;
+}
+.profile-card .name {
+  font-weight: 700;
+  font-size: 16px;
+  color: #333;
+}
+.profile-card .score {
+  font-size: 13px;
+  color: #666;
+  margin-top: 2px;
+}
+.profile-card .stars-display {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.new-profile {
+  background: #FFF;
+  border: 3px dashed #CCC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  color: #999;
+  min-width: 110px;
+}
+.new-profile:hover { border-color: var(--green); color: var(--green); }
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.btn:active { transform: translateY(0); }
+.btn-primary { background: var(--blue); color: white; }
+.btn-green { background: var(--green); color: white; }
+.btn-purple { background: var(--purple); color: white; }
+.btn-gold { background: linear-gradient(135deg, #FFD700, #FFA000); color: #333; }
+.btn-outline { background: white; border: 2px solid var(--blue); color: var(--blue); }
+.btn-small { padding: 8px 16px; font-size: 14px; }
+.btn-block { width: 100%; margin: 8px 0; }
+
+/* Headers */
+h1 { font-size: 24px; text-align: center; color: #333; margin-bottom: 8px; }
+h2 { font-size: 18px; text-align: center; color: #555; margin-bottom: 16px; }
+.category-tag {
+  display: inline-block;
+  background: #F0F0F0;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 13px;
+  color: #777;
+  margin-bottom: 12px;
+}
+
+/* Quiz */
+.quiz-question {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  padding: 16px;
+  margin: 12px 0;
+  line-height: 1.4;
+}
+.options {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+.option {
+  padding: 14px 18px;
+  border: 2px solid #E0E0E0;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.15s;
+  background: #FAFAFA;
+  text-align: left;
+}
+.option:hover { background: #F0F0FF; border-color: var(--blue); }
+.option.correct { background: #E8F5E9; border-color: var(--green); animation: pulse 0.4s; }
+.option.wrong { background: #FFEBEE; border-color: var(--red); animation: shake 0.4s; }
+.option.disabled { pointer-events: none; opacity: 0.8; }
+.option .letter {
+  display: inline-block;
+  width: 28px; height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border-radius: 50%;
+  background: #E0E0E0;
+  margin-right: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #555;
+}
+.option.correct .letter { background: var(--green); color: white; }
+.option.wrong .letter { background: var(--red); color: white; }
+
+.feedback {
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin: 12px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.feedback.correct { background: #E8F5E9; border: 1px solid var(--green); }
+.feedback.wrong { background: #FFEBEE; border: 1px solid var(--red); }
+.feedback .ref {
+  display: block;
+  margin-top: 8px;
+  font-style: italic;
+  color: #666;
+  font-size: 13px;
+}
+.feedback .ref::before { content: '📖 '; }
+
+.progress-bar {
+  height: 8px;
+  background: #E0E0E0;
+  border-radius: 4px;
+  margin: 12px 0;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--green));
+  transition: width 0.3s;
+  border-radius: 4px;
+}
+
+/* Stars animation */
+.stars-animation {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+.star {
+  position: absolute;
+  font-size: 32px;
+  animation: starFall 1.5s ease-out forwards;
+}
+@keyframes starFall {
+  0% { transform: translateY(-60px) scale(0) rotate(0deg); opacity: 1; }
+  50% { transform: translateY(30vh) scale(1.5) rotate(180deg); opacity: 1; }
+  100% { transform: translateY(100vh) scale(0.5) rotate(360deg); opacity: 0; }
+}
+
+/* Results screen */
+.results-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+.stat-card {
+  background: #F5F5F5;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+}
+.stat-card .value { font-size: 28px; font-weight: 700; color: var(--blue); }
+.stat-card .label { font-size: 12px; color: #777; margin-top: 4px; }
+
+.achievement {
+  background: linear-gradient(135deg, #FFF8E1, #FFE0B2);
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideIn 0.4s ease-out;
+}
+.achievement .icon { font-size: 32px; }
+.achievement .text { font-weight: 600; font-size: 14px; color: #555; }
+
+/* Animations */
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+@keyframes slideIn { from { opacity:0; transform: translateX(-20px); } to { opacity:1; transform: translateX(0); } }
+@keyframes bounce { 0%,100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+.bounce { animation: bounce 0.5s; }
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #EEE;
+  margin-bottom: 12px;
+}
+.toolbar .back-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px 8px;
+}
+.toolbar .back-btn:hover { color: var(--blue); }
+.toolbar .profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Input */
+input[type=text] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #E0E0E0;
+  border-radius: 12px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input[type=text]:focus { border-color: var(--blue); }
+
+.avatar-select {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 12px 0;
+}
+.avatar-option {
+  font-size: 40px;
+  padding: 8px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.avatar-option:hover, .avatar-option.selected { border-color: var(--blue); background: #E3F2FD; }
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #CCC;
+  font-size: 14px;
+  cursor: pointer;
+  float: right;
+  margin-top: -6px;
+  margin-right: -4px;
+}
+.delete-btn:hover { color: var(--red); }
+
+.emoji-reward {
+  font-size: 48px;
+  animation: bounce 0.6s ease;
+  text-align: center;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .container { padding: 16px; border-radius: 16px; }
+  h1 { font-size: 20px; }
+  .quiz-question { font-size: 17px; padding: 12px; }
+  .option { font-size: 14px; padding: 10px 14px; }
+  .results-stats { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <!-- Profile Selection Screen -->
+  <div class="screen active" id="screen-profiles">
+    <h1>🌟 Jogo Catequético</h1>
+    <h2>Quiz da Fé Católica</h2>
+    <div class="profiles-grid" id="profiles-list"></div>
+    <button class="btn btn-primary btn-block" onclick="showScreen('screen-new-profile')">➕ Criar Novo Jogador</button>
+    <p style="text-align:center;color:#999;font-size:12px;margin-top:8px;">Escolha seu perfil para jogar</p>
+  </div>
+
+  <!-- New Profile Screen -->
+  <div class="screen" id="screen-new-profile">
+    <div class="toolbar">
+      <button class="back-btn" onclick="showScreen('screen-profiles')">←</button>
+      <span class="profile-badge">Novo Jogador</span>
+      <span></span>
+    </div>
+    <h2>Criar Perfil</h2>
+    <input type="text" id="new-name" placeholder="Nome do jogador..." maxlength="20" autocomplete="off">
+    <p style="text-align:center;color:#666;font-size:14px;margin:12px 0;">Escolha um avatar:</p>
+    <div class="avatar-select" id="avatar-select"></div>
+    <button class="btn btn-green btn-block" onclick="createProfile()">✨ Criar e Jogar</button>
+  </div>
+
+  <!-- Category Selection -->
+  <div class="screen" id="screen-categories">
+    <div class="toolbar">
+      <button class="back-btn" onclick="logout()">←</button>
+      <span class="profile-badge">
+        <span id="current-avatar"></span>
+        <span id="current-name"></span>
+        <span style="color:var(--gold)">⭐<span id="current-stars">0</span></span>
+      </span>
+      <span></span>
+    </div>
+    <h2>Escolha a Categoria</h2>
+    <div id="categories-list"></div>
+    <button class="btn btn-gold btn-block" onclick="startRandomQuiz()">🎲 Modo Surpresa (Todas as Categorias)</button>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div class="screen" id="screen-quiz">
+    <div class="toolbar">
+      <button class="back-btn" onclick="confirmQuit()">←</button>
+      <span class="profile-badge" id="quiz-badge"></span>
+      <span style="font-size:13px;font-weight:600;color:#333;" id="quiz-score-display">0 pts</span>
+    </div>
+    <div class="category-tag" id="quiz-category"></div>
+    <div class="progress-bar"><div class="progress-fill" id="quiz-progress" style="width:0%"></div></div>
+    <div class="quiz-question" id="quiz-question"></div>
+    <div class="options" id="quiz-options"></div>
+    <div id="quiz-feedback"></div>
+    <button class="btn btn-primary btn-block" id="btn-next" style="display:none;" onclick="nextQuestion()">Próxima ➡️</button>
+  </div>
+
+  <!-- Results Screen -->
+  <div class="screen" id="screen-results">
+    <h1 id="results-emoji">🏆</h1>
+    <h2 id="results-title">Resultado!</h2>
+    <div class="results-stats">
+      <div class="stat-card"><div class="value" id="results-correct">0</div><div class="label">Acertos</div></div>
+      <div class="stat-card"><div class="value" id="results-wrong">0</div><div class="label">Erros</div></div>
+      <div class="stat-card"><div class="value" id="results-points">0</div><div class="label">Pontos</div></div>
+    </div>
+    <div id="results-achievements"></div>
+    <button class="btn btn-primary btn-block" onclick="showScreen('screen-categories')">🎯 Jogar de Novo</button>
+    <button class="btn btn-outline btn-block" onclick="logout()">🏠 Trocar de Perfil</button>
+  </div>
+</div>
+
+<div class="stars-animation" id="stars-container"></div>
+
+<script>
+// ============ GAME DATA ============
+const ALL_QUESTIONS = [
+{"id":0,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem criou o mundo e tudo o que existe?","answer":"Deus.","reference":"Gn 1,1 / CIC 279"},
+{"id":1,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Como Deus criou o mundo?","answer":"Pelo poder da Sua palavra, por puro amor.","reference":"Gn 1,3 / CIC 295"},
+{"id":2,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem foram o primeiro homem e a primeira mulher?","answer":"Adão e Eva.","reference":"Gn 2,7.22 / CIC 355"},
+{"id":3,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"O que é o pecado original?","answer":"Foi a desobediência de Adão e Eva a Deus no Paraíso.","reference":"Gn 3,1-24 / CIC 397"},
+{"id":4,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem é o grande inimigo de Deus e das nossas almas?","answer":"O demônio (o anjo rebelde).","reference":"Ap 12,7-9 / CIC 391"},
+{"id":5,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Onde moravam Adão e Eva antes do pecado?","answer":"No Jardim do Éden (Paraíso).","reference":"Gn 2,8-15 / CIC 374"},
+{"id":6,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem construiu a arca para salvar os animais do Dilúvio?","answer":"Noé.","reference":"Gn 6-9 / CIC 845"},
+{"id":7,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem é chamado de \"Pai da Fé\"?","answer":"Abraão.","reference":"Gn 12,1-4 / CIC 145"},
+{"id":8,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem libertou o povo de Deus da escravidão no Egito?","answer":"Moisés.","reference":"Ex 3,10 / CIC 2575"},
+{"id":9,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Como Deus guiou o povo no deserto à noite?","answer":"Com uma coluna de fogo.","reference":"Ex 13,21 / CIC 697"},
+{"id":10,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Que alimento caiu do céu para o povo no deserto?","answer":"O Maná.","reference":"Ex 16 / CIC 1094"},
+{"id":11,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem abriu o Mar Vermelho com o seu cajado?","answer":"Moisés.","reference":"Ex 14,21-22 / CIC 122"},
+{"id":12,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem derrotou o gigante Golias usando apenas uma pedra e uma funda?","answer":"Davi.","reference":"1Sm 17 / CIC 2579"},
+{"id":13,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem foi o rei mais sábio de Israel, que construiu o Primeiro Templo?","answer":"O Rei Salomão.","reference":"1Rs 3 / CIC 2580"},
+{"id":14,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem foi jogado na cova dos leões e não foi devorado porque Deus o protegeu?","answer":"O profeta Daniel.","reference":"Dn 6 / CIC 2584"},
+{"id":15,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"O que é a Bíblia Sagrada?","answer":"É a Palavra de Deus escrita por homens inspirados pelo Espírito Santo.","reference":"2Tm 3,16 / CIC 105"},
+{"id":16,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Em quantas partes a Bíblia é dividida?","answer":"Em duas: Antigo Testamento e Novo Testamento.","reference":"CIC 120"},
+{"id":17,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Sobre o que fala o Antigo Testamento?","answer":"Sobre a criação do mundo e a preparação para a vinda de Jesus.","reference":"CIC 121-123"},
+{"id":18,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Sobre o que fala o Novo Testamento?","answer":"Sobre a vida de Jesus, Seus ensinamentos e o início da Igreja.","reference":"CIC 124"},
+{"id":19,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"O que significa a palavra \"Evangelho\"?","answer":"Boa Nova ou Boa Notícia.","reference":"CIC 125"},
+{"id":20,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Quantos e quais são os Evangelistas?","answer":"São quatro: Mateus, Marcos, Lucas e João.","reference":"CIC 120"},
+{"id":21,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Qual é o livro da Bíblia que conta o início de todas as coisas?","answer":"O Livro do Gênesis.","reference":"Gn 1-50 / CIC 289"},
+{"id":22,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Qual é o livro da Bíblia cheio de orações e cânticos?","answer":"O Livro dos Salmos.","reference":"Sl 1-150 / CIC 2585"},
+{"id":23,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Quem escreveu a maioria das cartas (epístolas) do Novo Testamento?","answer":"São Paulo.","reference":"At 9 / CIC 2633"},
+{"id":24,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Qual é o último livro da Bíblia?","answer":"O Apocalipse.","reference":"Ap 1 / CIC 2640"},
+{"id":25,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem é Jesus Cristo?","answer":"O Filho de Deus feito homem para nos salvar.","reference":"Jo 3,16 / CIC 430"},
+{"id":26,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Em que cidade Jesus nasceu?","answer":"Em Belém.","reference":"Lc 2,4-7 / CIC 525"},
+{"id":27,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Onde Maria colocou Jesus logo após o Seu nascimento?","answer":"Numa manjedoura.","reference":"Lc 2,7 / CIC 525"},
+{"id":28,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem visitou o Menino Jesus guiado por uma estrela?","answer":"Os Três Reis Magos.","reference":"Mt 2,1-12 / CIC 528"},
+{"id":29,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quais foram os presentes dos Três Reis Magos?","answer":"Ouro, incenso e mirra.","reference":"Mt 2,11 / CIC 528"},
+{"id":30,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem é a Mãe de Jesus?","answer":"A Santíssima Virgem Maria.","reference":"Lc 1,26-38 / CIC 488"},
+{"id":31,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem foi o pai adotivo de Jesus na Terra?","answer":"São José.","reference":"Mt 1,18-25 / CIC 437"},
+{"id":32,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Que profissão São José exercia?","answer":"Carpinteiro.","reference":"Mt 13,55 / CIC 531"},
+{"id":33,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Em que cidade Jesus cresceu e viveu Sua infância?","answer":"Nazaré.","reference":"Lc 2,39-40 / CIC 531"},
+{"id":34,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem batizou Jesus no Rio Jordão?","answer":"São João Batista.","reference":"Mt 3,13-17 / CIC 535"},
+{"id":35,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"O que desceu do céu no batismo de Jesus em forma de pomba?","answer":"O Espírito Santo.","reference":"Mt 3,16 / CIC 701"},
+{"id":36,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quantos discípulos principais (apóstolos) Jesus escolheu?","answer":"Doze.","reference":"Mc 3,13-19 / CIC 858"},
+{"id":37,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem foi o primeiro líder dos apóstolos escolhido por Jesus?","answer":"São Pedro.","reference":"Mt 16,18 / CIC 881"},
+{"id":38,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Qual foi o primeiro milagre de Jesus?","answer":"A transformação de água em vinho nas Bodas de Caná.","reference":"Jo 2,1-12 / CIC 2618"},
+{"id":39,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Como Jesus ensinava o povo usando histórias simples?","answer":"Através de parábolas.","reference":"Mc 4,33-34 / CIC 546"},
+{"id":40,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Qual é a parábola que mostra o amor e o perdão de Deus para quem erra?","answer":"A parábola do Filho Pródigo.","reference":"Lc 15,11-32 / CIC 1439"},
+{"id":41,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem Jesus ressuscitou depois de estar morto há quatro dias?","answer":"Lázaro.","reference":"Jo 11,1-44 / CIC 640"},
+{"id":42,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Como Jesus acalmou a tempestade no mar?","answer":"Ele ordenou ao vento e ao mar que se calassem.","reference":"Mc 4,39 / CIC 447"},
+{"id":43,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quantos pães e peixes Jesus multiplicou para alimentar a multidão?","answer":"Cinco pães e dois peixes.","reference":"Mt 14,13-21 / CIC 1335"},
+{"id":44,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Qual apóstolo traiu Jesus por trinta moedas de prata?","answer":"Judas Iscariotes.","reference":"Mt 26,14-16 / CIC 597"},
+{"id":45,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Em que dia Jesus morreu na cruz?","answer":"Na Sexta-feira Santa.","reference":"Mc 15 / CIC 613"},
+{"id":46,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"O que aconteceu três dias depois da morte de Jesus?","answer":"Ele ressuscitou (Páscoa).","reference":"Mt 28 / CIC 638"},
+{"id":47,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"O que significa a Ascensão de Jesus?","answer":"A Sua subida ao Céu, quarenta dias após a Ressurreição.","reference":"At 1,9-11 / CIC 659"},
+{"id":48,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem Jesus prometeu enviar para ficar conosco após Sua subida ao Céu?","answer":"O Espírito Santo.","reference":"Jo 14,26 / CIC 729"},
+{"id":49,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Qual é o maior mandamento que Jesus nos deixou?","answer":"\"Amai-vos uns aos outros como Eu vos amei.\"","reference":"Jo 15,12 / CIC 1823"},
+{"id":50,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quem fundou a Igreja Católica?","answer":"O próprio Jesus Cristo.","reference":"Mt 16,18 / CIC 763"},
+{"id":51,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que aconteceu no dia de Pentecostes?","answer":"O Espírito Santo desceu sobre Nossa Senhora e os apóstolos.","reference":"At 2,1-4 / CIC 731"},
+{"id":52,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quem é o chefe visível da Igreja na Terra hoje?","answer":"O Papa.","reference":"CIC 882"},
+{"id":53,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quem é o chefe invisível e eterno da Igreja?","answer":"Jesus Cristo.","reference":"Ef 1,22 / CIC 792"},
+{"id":54,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Onde o Papa mora?","answer":"No Vaticano, em Roma.","reference":"CIC 882"},
+{"id":55,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quem ajuda o Papa a cuidar da Igreja em cada cidade ou região?","answer":"Os Bispos e os Padres.","reference":"CIC 886"},
+{"id":56,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que é a Santíssima Trindade?","answer":"É um só Deus em três Pessoas: Pai, Filho e Espírito Santo.","reference":"CIC 253-255"},
+{"id":57,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Como se chama a oração que resume todas as verdades da nossa fé?","answer":"O Credo.","reference":"CIC 194"},
+{"id":58,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quem é o nosso Anjo da Guarda?","answer":"Um anjo protetor dado por Deus a cada um de nós desde o nascimento.","reference":"CIC 336"},
+{"id":59,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que é a graça de Deus?","answer":"É a própria vida e amizade de Deus dentro da nossa alma.","reference":"CIC 1997"},
+{"id":60,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que é a oração?","answer":"É conversar com Deus, que nos ama.","reference":"CIC 2559"},
+{"id":61,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Qual é a oração que o próprio Jesus nos ensinou?","answer":"O Pai-Nosso.","reference":"Mt 6,9-13 / CIC 2759"},
+{"id":62,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Qual é a oração que fazemos para saudar Nossa Senhora?","answer":"A Ave-Maria.","reference":"Lc 1,28.42 / CIC 2676"},
+{"id":63,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quantos mistérios contemplamos ao rezar o Santo Terço completo (o Rosário)?","answer":"Quatro mistérios (Gozozos, Luminosos, Dolorosos e Gloriosos).","reference":"CIC 2678"},
+{"id":64,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que significa a palavra \"Amém\"?","answer":"\"Assim seja\" ou \"Eu creio\".","reference":"CIC 2856"},
+{"id":65,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Qual é o sinal do cristão que fazemos no corpo?","answer":"O Sinal da Cruz (Pelo sinal da santa cruz...).","reference":"CIC 2157"},
+{"id":66,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quem foi a única criatura humana que nasceu sem o pecado original?","answer":"Nossa Senhora (Imaculada Conceição).","reference":"CIC 491"},
+{"id":67,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que é a Comunhão dos Santos?","answer":"É a união de todos os cristãos da Terra, do Purgatório e do Céu.","reference":"CIC 946-953"},
+{"id":68,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que acontece com a alma de quem morre na amizade perfeita com Deus?","answer":"Vai para o Céu.","reference":"CIC 1023"},
+{"id":69,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que é o Purgatório?","answer":"O lugar de purificação para as almas que morrem na graça de Deus, mas ainda precisam se limpar de suas faltas antes de entrar no Céu.","reference":"CIC 1030"},
+{"id":70,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"A quem Deus entregou as Tábuas das Leis com os 10 Mandamentos?","answer":"A Moisés, no Monte Sinai.","reference":"Ex 20 / CIC 2056"},
+{"id":71,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 1º Mandamento?","answer":"Amar a Deus sobre todas as coisas.","reference":"Ex 20,2-3 / CIC 2084"},
+{"id":72,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 2º Mandamento?","answer":"Não tomar Seu santo nome em vão.","reference":"Ex 20,7 / CIC 2142"},
+{"id":73,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 3º Mandamento?","answer":"Guardar domingos e festas de guarda (ir à Missa).","reference":"Ex 20,8 / CIC 2168"},
+{"id":74,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 4º Mandamento?","answer":"Honrar pai e mãe.","reference":"Ex 20,12 / CIC 2197"},
+{"id":75,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 5º Mandamento?","answer":"Não matar.","reference":"Ex 20,13 / CIC 2258"},
+{"id":76,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 6º Mandamento?","answer":"Guardar castidade (não pecar contra a pureza).","reference":"Ex 20,14 / CIC 2331"},
+{"id":77,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 7º Mandamento?","answer":"Não roubar.","reference":"Ex 20,15 / CIC 2401"},
+{"id":78,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 8º Mandamento?","answer":"Não levantar falso testemunho (não mentir).","reference":"Ex 20,16 / CIC 2464"},
+{"id":79,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 9º Mandamento?","answer":"Não desejar a mulher do próximo.","reference":"Ex 20,17 / CIC 2514"},
+{"id":80,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 10º Mandamento?","answer":"Não cobiçar as coisas do próximo.","reference":"Ex 20,17 / CIC 2534"},
+{"id":81,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Em quantos mandamentos se resumem os dez?","answer":"Em dois: Amar a Deus sobre todas as coisas e ao próximo como a si mesmo.","reference":"Mt 22,36-40 / CIC 2055"},
+{"id":82,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que são os Sacramentos?","answer":"Sinais visíveis instituídos por Jesus para nos dar a Sua graça.","reference":"CIC 1131"},
+{"id":83,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Quantos são os Sacramentos?","answer":"Sete.","reference":"CIC 1210"},
+{"id":84,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Qual é o primeiro Sacramento que recebemos, que nos torna filhos de Deus e limpa o pecado original?","answer":"O Batismo.","reference":"CIC 1213"},
+{"id":85,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Quem nos batiza normalmente?","answer":"O Padre ou o Diácono.","reference":"CIC 1256"},
+{"id":86,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Que água especial é usada no Batismo?","answer":"A água benta.","reference":"CIC 1238"},
+{"id":87,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Qual Sacramento confirma o nosso Batismo e nos dá a força do Espírito Santo para sermos testemunhas de Jesus?","answer":"A Confirmação ou Crisma.","reference":"CIC 1285"},
+{"id":88,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que recebemos na Sagrada Eucaristia?","answer":"O Corpo e o Sangue de Jesus Cristo de verdade.","reference":"CIC 1324"},
+{"id":89,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que acontece com o pão e o vinho durante a Missa?","answer":"Eles se transformam no Corpo e no Sangue de Jesus (Consagração).","reference":"CIC 1375"},
+{"id":90,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Como se chama o Sacramento onde Deus perdoa os nossos pecados através do padre?","answer":"Sacramento da Reconciliação, Confissão ou Penitência.","reference":"CIC 1422"},
+{"id":91,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que devemos fazer antes de ir confessar com o padre?","answer":"O exame de consciência (lembrar dos pecados e se arrepender).","reference":"CIC 1454"},
+{"id":92,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que o padre nos dá no final da confissão para apagar nossos pecados?","answer":"A absolvição.","reference":"CIC 1449"},
+{"id":93,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Qual é o Sacramento dos doentes graves ou idosos, para lhes dar força espiritual e saúde?","answer":"A Unção dos Enfermos.","reference":"CIC 1499"},
+{"id":94,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Qual é o Sacramento que consagra os homens como diáconos, padres ou bispos?","answer":"O Sacramento da Ordem.","reference":"CIC 1536"},
+{"id":95,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Qual é o Sacramento que une o homem e a mulher no amor para formar uma família cristã?","answer":"O Matrimônio.","reference":"CIC 1601"},
+{"id":96,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que é o pecado mortal?","answer":"Uma desobediência grave à lei de Deus que destrói a caridade no coração.","reference":"CIC 1855"},
+{"id":97,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que é o pecado venial?","answer":"Uma falta mais leve contra Deus que enfraquece a nossa amizade com Ele, mas não a destrói totalmente.","reference":"CIC 1862"},
+{"id":98,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Quantos são os Mandamentos da Igreja (as cinco obrigações básicas)?","answer":"Cinco (Participar da missa aos domingos, confessar-se ao menos uma vez ao ano, comungar ao menos pela Páscoa, jejuar nos dias estipulados e ajudar a Igreja em suas necessidades).","reference":"CIC 2042-2043"},
+{"id":99,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Qual deve ser o maior objetivo de toda criança e adulto católico nesta vida?","answer":"Ser santo e chegar ao Céu para viver com Deus para sempre.","reference":"CIC 2013"}
+];
+
+const CATEGORIES = [...new Set(ALL_QUESTIONS.map(q => q.category))];
+const AVATARS = ['😇','🙏','🕊️','✝️','🌟','💒','📿','🕯️','👼','🐑','🌿','💜'];
+const STORAGE_KEY = 'catequiz_game';
+
+// ============ STATE ============
+let currentProfile = null;
+let currentQuiz = null;
+let gameData = loadGameData();
+
+function loadGameData() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { profiles: {} }; }
+  catch(e) { return { profiles: {} }; }
+}
+function saveGameData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(gameData));
+}
+
+// ============ SCREENS ============
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const screen = document.getElementById(id);
+  if (screen) screen.classList.add('active');
+}
+
+// ============ PROFILES ============
+function renderProfiles() {
+  const container = document.getElementById('profiles-list');
+  const profiles = gameData.profiles;
+  const entries = Object.entries(profiles);
+  
+  let html = '';
+  for (const [name, data] of entries) {
+    const stars = data.stars || 0;
+    const points = data.points || 0;
+    html += `
+      <div class="profile-card" onclick="selectProfile('${escapeHTML(name)}')">
+        <button class="delete-btn" onclick="event.stopPropagation(); deleteProfile('${escapeHTML(name)}')" title="Remover">✕</button>
+        <span class="avatar">${data.avatar || '😇'}</span>
+        <div class="name">${escapeHTML(name)}</div>
+        <div class="score">${points} pontos</div>
+        <div class="stars-display">${'⭐'.repeat(Math.min(stars, 20))}</div>
+      </div>`;
+  }
+  html += `<div class="profile-card new-profile" onclick="showScreen('screen-new-profile')">➕</div>`;
+  container.innerHTML = html || '<p style="text-align:center;color:#999;">Nenhum perfil ainda. Crie o primeiro!</p>';
+}
+
+function deleteProfile(name) {
+  if (!confirm(`Remover o perfil de "${name}"?`)) return;
+  delete gameData.profiles[name];
+  saveGameData();
+  renderProfiles();
+}
+
+function selectProfile(name) {
+  currentProfile = name;
+  const data = gameData.profiles[name];
+  document.getElementById('current-avatar').textContent = data.avatar || '😇';
+  document.getElementById('current-name').textContent = name;
+  document.getElementById('current-stars').textContent = data.stars || 0;
+  showScreen('screen-categories');
+  renderCategories();
+}
+
+function logout() {
+  currentProfile = null;
+  currentQuiz = null;
+  showScreen('screen-profiles');
+  renderProfiles();
+}
+
+function renderAvatarSelect() {
+  const container = document.getElementById('avatar-select');
+  let html = '';
+  for (const av of AVATARS) {
+    html += `<span class="avatar-option" onclick="selectAvatar(this, '${av}')">${av}</span>`;
+  }
+  container.innerHTML = html;
+  // select first by default
+  const first = container.querySelector('.avatar-option');
+  if (first) first.classList.add('selected');
+}
+
+function selectAvatar(el, avatar) {
+  document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function createProfile() {
+  const name = document.getElementById('new-name').value.trim();
+  if (!name) { alert('Digite um nome!'); return; }
+  if (gameData.profiles[name]) { alert('Esse nome já existe!'); return; }
+  
+  const selected = document.querySelector('.avatar-option.selected');
+  const avatar = selected ? selected.textContent : '😇';
+  
+  gameData.profiles[name] = { avatar, stars: 0, points: 0, played: 0, history: [] };
+  saveGameData();
+  
+  document.getElementById('new-name').value = '';
+  selectProfile(name);
+}
+
+// ============ CATEGORIES ============
+function renderCategories() {
+  const container = document.getElementById('categories-list');
+  const icons = {'🌟':'🌍','📖':'📚','👶':'✝️','⛪':'⛪','📜':'📋','💧':'💧'};
+  let html = '';
+  for (const cat of CATEGORIES) {
+    const icon = Object.entries(icons).find(([k]) => cat.startsWith(k))?.[1] || '📖';
+    const count = ALL_QUESTIONS.filter(q => q.category === cat).length;
+    html += `
+      <button class="btn btn-outline btn-block" style="text-align:left;margin:4px 0;" onclick="startQuiz('${escapeHTML(cat).replace(/'/g, "\\'")}')">
+        ${icon} ${escapeHTML(cat.replace(/^.\s*/, ''))} <span style="float:right;color:#999;font-size:13px;">${count} perguntas</span>
+      </button>`;
+  }
+  container.innerHTML = html;
+}
+
+// ============ QUIZ ============
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function startQuiz(category) {
+  let pool;
+  if (category === 'random') {
+    pool = shuffle(ALL_QUESTIONS).slice(0, 15); // 15 random questions
+  } else {
+    pool = shuffle(ALL_QUESTIONS.filter(q => q.category === category));
+  }
+  
+  currentQuiz = {
+    questions: pool,
+    currentIndex: 0,
+    correct: 0,
+    wrong: 0,
+    points: 0,
+    category: category === 'random' ? '🎲 Modo Surpresa' : category,
+    answered: false
+  };
+  
+  document.getElementById('quiz-badge').innerHTML = 
+    `<span>${gameData.profiles[currentProfile].avatar}</span> <span>${currentProfile}</span>`;
+  
+  renderQuestion();
+  showScreen('screen-quiz');
+}
+
+function startRandomQuiz() {
+  startQuiz('random');
+}
+
+function renderQuestion() {
+  if (!currentQuiz || currentQuiz.currentIndex >= currentQuiz.questions.length) {
+    finishQuiz();
+    return;
+  }
+  
+  const q = currentQuiz.questions[currentQuiz.currentIndex];
+  const total = currentQuiz.questions.length;
+  const idx = currentQuiz.currentIndex + 1;
+  
+  // Progress
+  document.getElementById('quiz-progress').style.width = ((idx-1)/total*100)+'%';
+  document.getElementById('quiz-category').textContent = currentQuiz.category;
+  document.getElementById('quiz-question').textContent = q.question;
+  document.getElementById('quiz-score-display').textContent = currentQuiz.points + ' pts';
+  document.getElementById('quiz-feedback').innerHTML = '';
+  document.getElementById('btn-next').style.display = 'none';
+  currentQuiz.answered = false;
+  
+  // Generate options: 1 correct + 3 random wrong from same category or all
+  const correctAnswer = q.answer;
+  const wrongPool = ALL_QUESTIONS
+    .filter(oq => oq.id !== q.id)
+    .map(oq => oq.answer);
+  const uniqueWrong = [...new Set(wrongPool)].filter(a => a !== correctAnswer);
+  const distractors = shuffle(uniqueWrong).slice(0, 3);
+  const options = shuffle([correctAnswer, ...distractors]);
+  
+  const letters = ['A','B','C','D'];
+  let html = '';
+  for (let i = 0; i < options.length; i++) {
+    html += `<div class="option" onclick="selectAnswer(this, '${escapeHTML(options[i]).replace(/'/g, "\\'")}')">
+      <span class="letter">${letters[i]}</span>${escapeHTML(options[i])}
+    </div>`;
+  }
+  document.getElementById('quiz-options').innerHTML = html;
+}
+
+function selectAnswer(el, chosen) {
+  if (currentQuiz.answered) return;
+  currentQuiz.answered = true;
+  
+  const q = currentQuiz.questions[currentQuiz.currentIndex];
+  const correct = q.answer;
+  const isCorrect = chosen === correct;
+  
+  // Highlight all options
+  document.querySelectorAll('.option').forEach(opt => {
+    opt.classList.add('disabled');
+    if (opt.textContent.trim().replace(/^[A-D]/, '').trim() === correct) {
+      opt.classList.add('correct');
+    }
+  });
+  
+  if (!isCorrect) el.classList.add('wrong');
+  
+  // Score
+  const points = isCorrect ? 10 : 0;
+  currentQuiz.points += points;
+  if (isCorrect) currentQuiz.correct++;
+  else currentQuiz.wrong++;
+  
+  document.getElementById('quiz-score-display').textContent = currentQuiz.points + ' pts';
+  document.getElementById('quiz-progress').style.width = (currentQuiz.currentIndex+1)/currentQuiz.questions.length*100+'%';
+  
+  // Feedback
+  const fb = document.getElementById('quiz-feedback');
+  if (isCorrect) {
+    fb.innerHTML = `
+      <div class="feedback correct">
+        ✅ <strong>Correto!</strong> Muito bem! 🎉<br>
+        <span class="ref">${q.reference}</span>
+      </div>`;
+    spawnStars();
+  } else {
+    fb.innerHTML = `
+      <div class="feedback wrong">
+        ❌ <strong>Ops!</strong> A resposta correta é:<br>
+        <strong>${escapeHTML(correct)}</strong><br>
+        <span class="ref">${q.reference}</span>
+      </div>`;
+  }
+  
+  document.getElementById('btn-next').style.display = 'block';
+  document.getElementById('btn-next').textContent = 
+    currentQuiz.currentIndex + 1 >= currentQuiz.questions.length ? '🏆 Ver Resultado' : 'Próxima ➡️';
+}
+
+function nextQuestion() {
+  currentQuiz.currentIndex++;
+  renderQuestion();
+}
+
+function confirmQuit() {
+  if (!currentQuiz || currentQuiz.answered || currentQuiz.currentIndex === 0) {
+    if (currentQuiz && currentQuiz.currentIndex > 0 && !currentQuiz.answered) {
+      if (!confirm('Tem certeza que quer sair? Seu progresso será perdido.')) return;
+    }
+    showScreen('screen-categories');
+    currentQuiz = null;
+    return;
+  }
+  showScreen('screen-categories');
+  currentQuiz = null;
+}
+
+// ============ RESULTS ============
+function finishQuiz() {
+  const total = currentQuiz.questions.length;
+  const correct = currentQuiz.correct;
+  const wrong = currentQuiz.wrong;
+  const points = currentQuiz.points;
+  const maxPoints = total * 10;
+  const pct = Math.round(correct/total*100);
+  
+  // Update profile
+  const profile = gameData.profiles[currentProfile];
+  profile.points = (profile.points || 0) + points;
+  profile.played = (profile.played || 0) + 1;
+  
+  // Star rewards
+  let earnedStars = 0;
+  if (pct === 100) earnedStars = 5;
+  else if (pct >= 80) earnedStars = 4;
+  else if (pct >= 60) earnedStars = 3;
+  else if (pct >= 40) earnedStars = 2;
+  else earnedStars = 1;
+  
+  profile.stars = (profile.stars || 0) + earnedStars;
+  profile.history.push({
+    date: new Date().toISOString(),
+    category: currentQuiz.category,
+    correct, total, points, stars: earnedStars
+  });
+  saveGameData();
+  
+  // Emoji
+  let emoji;
+  if (pct === 100) emoji = '👑';
+  else if (pct >= 80) emoji = '🌟';
+  else if (pct >= 60) emoji = '😊';
+  else if (pct >= 40) emoji = '💪';
+  else emoji = '📚';
+  
+  document.getElementById('results-emoji').textContent = emoji;
+  document.getElementById('results-title').textContent = pct >= 60 ? 'Parabéns!' : 'Continue Tentando!';
+  document.getElementById('results-correct').textContent = correct;
+  document.getElementById('results-wrong').textContent = wrong;
+  document.getElementById('results-points').textContent = '+' + points;
+  
+  // Achievements
+  let achievements = '';
+  achievements += `<div class="achievement"><span class="icon">⭐</span><span class="text">+${earnedStars} estrela${earnedStars>1?'s':''} conquistada${earnedStars>1?'s':''}!</span></div>`;
+  
+  if (pct === 100) {
+    achievements += `<div class="achievement"><span class="icon">🏆</span><span class="text">Gabaritou! Perfeito! Você é um campeão da fé!</span></div>`;
+  }
+  if (correct === total - 1) {
+    achievements += `<div class="achievement"><span class="icon">🎯</span><span class="text">Quase lá! Só faltou uma!</span></div>`;
+  }
+  if (profile.played === 1) {
+    achievements += `<div class="achievement"><span class="icon">🎮</span><span class="text">Primeira partida concluída!</span></div>`;
+  } else if (profile.played === 5) {
+    achievements += `<div class="achievement"><span class="icon">🔥</span><span class="text">5 partidas jogadas! Você é dedicado!</span></div>`;
+  }
+  if (profile.stars >= 20) {
+    achievements += `<div class="achievement"><span class="icon">💎</span><span class="text">20 estrelas! Incrível!</span></div>`;
+  }
+  
+  document.getElementById('results-achievements').innerHTML = achievements;
+  
+  showScreen('screen-results');
+  spawnStars();
+}
+
+// ============ STARS ANIMATION ============
+function spawnStars() {
+  const container = document.getElementById('stars-container');
+  const emojis = ['⭐','🌟','✨','💫','🎉','🎊'];
+  for (let i = 0; i < 8; i++) {
+    const star = document.createElement('span');
+    star.className = 'star';
+    star.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    star.style.left = Math.random()*90 + '%';
+    star.style.animationDelay = Math.random()*0.5 + 's';
+    star.style.fontSize = (24 + Math.random()*32) + 'px';
+    container.appendChild(star);
+    setTimeout(() => star.remove(), 2000);
+  }
+}
+
+// ============ UTILS ============
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ============ INIT ============
+renderProfiles();
+renderAvatarSelect();
+
+// Load new profile screen on Enter key
+document.getElementById('new-name').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') createProfile();
+});
+</script>
+
+</body>
+</html>
