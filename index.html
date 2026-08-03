@@ -3,913 +3,1113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🌟 Jogo Catequético - Quiz da Fé</title>
+<title>🌟 Jornada da Fé - Aventura Catequética</title>
 <style>
 :root {
-  --gold: #FFD700;
-  --blue: #4A90D9;
-  --green: #4CAF50;
-  --red: #E74C3C;
-  --purple: #9B59B6;
-  --bg: #FEF9E7;
-  --card: #FFFFFF;
+  --gold: #FFD700; --blue: #4A90D9; --green: #4CAF50; --red: #E74C3C;
+  --purple: #9B59B6; --orange: #FF9800; --bg: #FFFDF5;
+  --card-bg: #FFFFFF; --sky1: #87CEEB; --sky2: #E8F4FD;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
   font-family: 'Segoe UI', system-ui, sans-serif;
-  background: linear-gradient(135deg, #FFF8E1, #E8F5E9, #E3F2FD);
+  background: linear-gradient(180deg, var(--sky1) 0%, #B8E0D2 40%, #D4E6B5 70%, #E8D5B7 100%);
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: flex; justify-content: center; align-items: center;
   padding: 10px;
+  overflow-x: hidden;
 }
 .container {
-  max-width: 700px;
-  width: 100%;
-  background: var(--card);
-  border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-  padding: 24px;
-  position: relative;
-  overflow: hidden;
+  max-width: 720px; width: 100%; background: var(--card-bg);
+  border-radius: 20px; box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  padding: 20px; position: relative; overflow: hidden;
 }
 .container::before {
-  content: '';
-  position: absolute; top:0; left:0; right:0;
-  height: 6px;
+  content: ''; position: absolute; top:0; left:0; right:0;
+  height: 5px;
   background: linear-gradient(90deg, #FFD700, #FF6B6B, #4A90D9, #4CAF50, #9B59B6, #FFD700);
+  animation: rainbow 3s linear infinite; background-size: 200% 100%;
 }
+@keyframes rainbow { to { background-position: 200% 0; } }
 
-/* Screens */
 .screen { display: none; }
 .screen.active { display: block; }
+h1 { font-size: 22px; text-align: center; color: #333; margin-bottom: 4px; }
+h2 { font-size: 16px; text-align: center; color: #666; margin-bottom: 12px; }
 
-/* Profile Selection */
-.profiles-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-  margin: 20px 0;
-}
-.profile-card {
-  background: #F5F5F5;
-  border: 3px solid #E0E0E0;
-  border-radius: 16px;
-  padding: 16px 12px;
-  cursor: pointer;
-  text-align: center;
-  min-width: 110px;
-  transition: all 0.2s;
-  flex: 1;
-  max-width: 160px;
-}
-.profile-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-}
-.profile-card.selected {
-  border-color: var(--blue);
-  background: #E3F2FD;
-}
-.profile-card .avatar {
-  font-size: 48px;
-  display: block;
-  margin-bottom: 4px;
-}
-.profile-card .name {
-  font-weight: 700;
-  font-size: 16px;
-  color: #333;
-}
-.profile-card .score {
-  font-size: 13px;
-  color: #666;
-  margin-top: 2px;
-}
-.profile-card .stars-display {
-  font-size: 12px;
-  margin-top: 2px;
-}
-
-.new-profile {
-  background: #FFF;
-  border: 3px dashed #CCC;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-  color: #999;
-  min-width: 110px;
-}
-.new-profile:hover { border-color: var(--green); color: var(--green); }
-
-/* Buttons */
 .btn {
-  display: inline-block;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 50px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: center;
+  padding: 10px 20px; border: none; border-radius: 50px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s; text-align: center; line-height: 1.3;
 }
 .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 .btn:active { transform: translateY(0); }
-.btn-primary { background: var(--blue); color: white; }
-.btn-green { background: var(--green); color: white; }
-.btn-purple { background: var(--purple); color: white; }
-.btn-gold { background: linear-gradient(135deg, #FFD700, #FFA000); color: #333; }
-.btn-outline { background: white; border: 2px solid var(--blue); color: var(--blue); }
-.btn-small { padding: 8px 16px; font-size: 14px; }
-.btn-block { width: 100%; margin: 8px 0; }
+.btn-block { display: block; width: 100%; margin: 6px 0; }
 
-/* Headers */
-h1 { font-size: 24px; text-align: center; color: #333; margin-bottom: 8px; }
-h2 { font-size: 18px; text-align: center; color: #555; margin-bottom: 16px; }
+/* PROFILE SCREEN */
+.profiles-wrap { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 16px 0; }
+.profile-bubble {
+  background: #F0F0F0; border: 3px solid #DDD; border-radius: 16px;
+  padding: 14px 10px; cursor: pointer; text-align: center;
+  min-width: 100px; flex: 1; max-width: 150px;
+  transition: all 0.2s; position: relative;
+}
+.profile-bubble:hover { transform: translateY(-4px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+.profile-bubble .av { font-size: 40px; display: block; margin-bottom: 2px; }
+.profile-bubble .nm { font-weight: 700; font-size: 14px; color: #333; }
+.profile-bubble .lv { font-size: 11px; color: #888; }
+.profile-bubble .delete-btn {
+  position: absolute; top: 4px; right: 8px; background: none; border: none;
+  color: #CCC; font-size: 14px; cursor: pointer; padding: 0;
+}
+.profile-bubble .delete-btn:hover { color: var(--red); }
+.new-profile-bubble {
+  background: #FFF; border: 3px dashed #CCC; display: flex;
+  align-items: center; justify-content: center; font-size: 32px;
+  color: #BBB; cursor: pointer; min-width: 100px; max-width: 150px;
+}
+.new-profile-bubble:hover { border-color: var(--green); color: var(--green); }
+
+.avatar-picker { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
+.avatar-picker span { font-size: 36px; padding: 6px; border: 2px solid transparent; border-radius: 10px; cursor: pointer; }
+.avatar-picker span.sel { border-color: var(--blue); background: #E3F2FD; }
+
+/* JOURNEY MAP */
+.map-container { position: relative; margin: 12px 0; min-height: 280px; }
+.map-path {
+  position: relative; height: 220px;
+  background: linear-gradient(180deg, #E8D5B7 0%, #D4C4A0 100%);
+  border-radius: 16px; overflow: hidden; border: 2px solid #C4B080;
+}
+.map-character {
+  position: absolute; font-size: 32px; transition: all 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+.map-milestone {
+  position: absolute; width: 36px; height: 36px; border-radius: 50%;
+  background: #DDD; border: 2px solid #BBB; display: flex;
+  align-items: center; justify-content: center; font-size: 18px;
+  transition: all 0.4s;
+}
+.map-milestone.completed { background: var(--gold); border-color: #C9A000; animation: glow 2s infinite; }
+.map-milestone.current { background: var(--blue); border-color: #2563EB; animation: pulse 1s infinite; }
+.map-milestone.locked { background: #EEE; border-color: #CCC; opacity: 0.6; }
+@keyframes glow { 0%,100% { box-shadow: 0 0 8px var(--gold); } 50% { box-shadow: 0 0 20px var(--gold); } }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+/* PLAY BUTTON */
+.play-area { text-align: center; margin: 12px 0; padding: 16px; background: #FFFBF0; border-radius: 16px; border: 1px solid #F0E6C0; }
+.play-area .region-name { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 4px; }
+.play-area .region-desc { font-size: 13px; color: #888; margin-bottom: 8px; }
+
+.stats-bar { display: flex; justify-content: space-around; align-items: center; padding: 8px 0; border-top: 1px solid #EEE; margin-top: 8px; }
+.stat-item { text-align: center; font-size: 12px; color: #666; }
+.stat-item strong { display: block; font-size: 20px; color: #333; }
+
+/* COLLECTION BAR */
+.collection-bar {
+  display: flex; gap: 8px; overflow-x: auto; padding: 8px 0;
+  border-top: 1px solid #EEE; margin-top: 8px;
+}
+.collection-bar span { font-size: 24px; flex-shrink: 0; }
+.collection-bar .missing { opacity: 0.2; filter: grayscale(1); }
+
+/* XP BAR */
+.xp-bar { height: 10px; background: #EEE; border-radius: 5px; margin: 4px 0; overflow: hidden; }
+.xp-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 5px; transition: width 0.5s; }
+
+/* QUIZ */
 .category-tag {
-  display: inline-block;
-  background: #F0F0F0;
-  padding: 4px 12px;
-  border-radius: 50px;
-  font-size: 13px;
-  color: #777;
-  margin-bottom: 12px;
+  display: inline-block; background: #F0F0F0; padding: 4px 12px;
+  border-radius: 50px; font-size: 12px; color: #888; margin-bottom: 8px;
+}
+.quiz-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+
+.streak-counter {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 14px; font-weight: 700; color: var(--orange);
+  transition: all 0.3s;
+}
+.streak-counter.on-fire { color: #FF4500; animation: shake 0.3s; font-size: 18px; }
+.streak-counter .fire-emoji { font-size: 20px; }
+
+.power-bar { display: flex; gap: 6px; justify-content: center; margin: 8px 0; }
+.power-btn {
+  font-size: 22px; padding: 6px 10px; border: 2px solid #DDD; border-radius: 10px;
+  background: #FAFAFA; cursor: pointer; transition: all 0.2s; position: relative;
+}
+.power-btn:hover:not(:disabled) { background: #F0F0FF; border-color: var(--blue); transform: scale(1.1); }
+.power-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.power-btn .badge {
+  position: absolute; top: -6px; right: -6px; background: var(--red);
+  color: white; font-size: 10px; width: 18px; height: 18px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
 }
 
-/* Quiz */
 .quiz-question {
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
-  text-align: center;
-  padding: 16px;
-  margin: 12px 0;
-  line-height: 1.4;
-}
-.options {
-  display: grid;
-  gap: 10px;
-  margin: 16px 0;
-}
-.option {
-  padding: 14px 18px;
-  border: 2px solid #E0E0E0;
+  font-size: 19px; font-weight: 600; color: #333; text-align: center;
+  padding: 14px; margin: 10px 0; line-height: 1.4; background: #FAFAFA;
   border-radius: 12px;
-  cursor: pointer;
-  font-size: 15px;
-  transition: all 0.15s;
-  background: #FAFAFA;
+}
+.options { display: grid; gap: 8px; margin: 12px 0; }
+.option {
+  padding: 12px 16px; border: 2px solid #E0E0E0; border-radius: 12px;
+  cursor: pointer; font-size: 14px; transition: all 0.15s; background: #FFF;
   text-align: left;
 }
 .option:hover { background: #F0F0FF; border-color: var(--blue); }
-.option.correct { background: #E8F5E9; border-color: var(--green); animation: pulse 0.4s; }
-.option.wrong { background: #FFEBEE; border-color: var(--red); animation: shake 0.4s; }
-.option.disabled { pointer-events: none; opacity: 0.8; }
 .option .letter {
-  display: inline-block;
-  width: 28px; height: 28px;
-  line-height: 28px;
-  text-align: center;
-  border-radius: 50%;
-  background: #E0E0E0;
-  margin-right: 10px;
-  font-weight: 700;
-  font-size: 13px;
-  color: #555;
+  display: inline-block; width: 26px; height: 26px; line-height: 26px;
+  text-align: center; border-radius: 50%; background: #E8E8E8;
+  margin-right: 8px; font-weight: 700; font-size: 12px; color: #666;
 }
-.option.correct .letter { background: var(--green); color: white; }
+.option.correct { background: #E8F5E9; border-color: var(--green); animation: pop 0.3s; }
+.option.wrong { background: #FFEBEE; border-color: var(--red); animation: shake 0.3s; }
+.option.disabled { pointer-events: none; }
+.option.correct .letter, .option.power-hint .letter { background: var(--green); color: white; }
 .option.wrong .letter { background: var(--red); color: white; }
+.option.power-hint { background: #FFF8E1; border-color: var(--gold); }
 
-.feedback {
-  padding: 12px 16px;
-  border-radius: 12px;
-  margin: 12px 0;
-  font-size: 14px;
-  line-height: 1.5;
+.feedback-box {
+  padding: 12px; border-radius: 12px; margin: 10px 0;
+  font-size: 13px; line-height: 1.5;
 }
-.feedback.correct { background: #E8F5E9; border: 1px solid var(--green); }
-.feedback.wrong { background: #FFEBEE; border: 1px solid var(--red); }
-.feedback .ref {
-  display: block;
-  margin-top: 8px;
-  font-style: italic;
-  color: #666;
-  font-size: 13px;
-}
-.feedback .ref::before { content: '📖 '; }
+.feedback-box.correct { background: #E8F5E9; border: 1px solid var(--green); }
+.feedback-box.wrong { background: #FFEBEE; border: 1px solid var(--red); }
+.feedback-box .ref { display: block; margin-top: 6px; font-style: italic; color: #888; font-size: 12px; }
+.feedback-box .ref::before { content: '📖 '; }
 
-.progress-bar {
-  height: 8px;
-  background: #E0E0E0;
-  border-radius: 4px;
-  margin: 12px 0;
-  overflow: hidden;
+.progress-bar { height: 6px; background: #EEE; border-radius: 3px; margin: 8px 0; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 0.3s; border-radius: 3px; }
+
+/* CARD DROP ANIMATION */
+.card-drop-overlay {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.6); z-index: 999; display: flex;
+  align-items: center; justify-content: center;
 }
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--blue), var(--green));
-  transition: width 0.3s;
-  border-radius: 4px;
+.card-drop-box {
+  background: white; border-radius: 20px; padding: 24px; text-align: center;
+  max-width: 280px; animation: cardPopIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.card-drop-box .card-emoji { font-size: 64px; display: block; margin-bottom: 8px; }
+.card-drop-box .card-name { font-size: 18px; font-weight: 700; color: #333; }
+.card-drop-box .card-fact { font-size: 13px; color: #666; margin: 8px 0; }
+.card-drop-box .card-ref { font-size: 11px; color: #999; font-style: italic; }
+@keyframes cardPopIn { 0% { transform: scale(0) rotate(-10deg); } 100% { transform: scale(1) rotate(0); } }
+
+/* CARD GALLERY */
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; margin: 12px 0; }
+.gallery-card {
+  text-align: center; padding: 8px; border-radius: 10px;
+  background: #FFF; border: 2px solid #EEE;
+}
+.gallery-card.owned { border-color: var(--gold); background: #FFFDE7; }
+.gallery-card .gc-emoji { font-size: 32px; display: block; }
+.gallery-card .gc-name { font-size: 10px; color: #888; margin-top: 2px; }
+.gallery-card .gc-check { font-size: 12px; color: var(--green); }
+
+/* REWARD ANIMATION */
+.reward-overlay {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  pointer-events: none; z-index: 1000;
+}
+.reward-star {
+  position: absolute; font-size: 28px;
+  animation: starBurst 1.2s ease-out forwards;
+}
+@keyframes starBurst {
+  0% { transform: translate(-50%,-50%) scale(0) rotate(0deg); opacity: 1; }
+  50% { transform: translate(-50%,-50%) scale(2) rotate(180deg); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(0.5) rotate(360deg) translateY(-200px); opacity: 0; }
 }
 
-/* Stars animation */
-.stars-animation {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 1000;
-}
-.star {
-  position: absolute;
-  font-size: 32px;
-  animation: starFall 1.5s ease-out forwards;
-}
-@keyframes starFall {
-  0% { transform: translateY(-60px) scale(0) rotate(0deg); opacity: 1; }
-  50% { transform: translateY(30vh) scale(1.5) rotate(180deg); opacity: 1; }
-  100% { transform: translateY(100vh) scale(0.5) rotate(360deg); opacity: 0; }
+/* RESULTS */
+.results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+.result-card { background: #F5F5F5; border-radius: 12px; padding: 10px; text-align: center; }
+.result-card .rv { font-size: 26px; font-weight: 700; color: var(--blue); }
+.result-card .rl { font-size: 11px; color: #888; margin-top: 2px; }
+
+.level-up-badge {
+  background: linear-gradient(135deg, var(--gold), #FFA000);
+  border-radius: 12px; padding: 12px; text-align: center; margin: 8px 0;
+  animation: pulse 1s infinite; color: #5D4037; font-weight: 700;
 }
 
-/* Results screen */
-.results-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin: 16px 0;
+.achievement-row {
+  background: #FFFDE7; border: 2px solid var(--gold); border-radius: 10px;
+  padding: 10px; margin: 6px 0; display: flex; align-items: center; gap: 8px;
+  animation: slideIn 0.3s ease;
 }
-.stat-card {
-  background: #F5F5F5;
-  border-radius: 12px;
-  padding: 12px;
-  text-align: center;
-}
-.stat-card .value { font-size: 28px; font-weight: 700; color: var(--blue); }
-.stat-card .label { font-size: 12px; color: #777; margin-top: 4px; }
-
-.achievement {
-  background: linear-gradient(135deg, #FFF8E1, #FFE0B2);
-  border: 2px solid var(--gold);
-  border-radius: 12px;
-  padding: 12px 16px;
-  margin: 8px 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  animation: slideIn 0.4s ease-out;
-}
-.achievement .icon { font-size: 32px; }
-.achievement .text { font-weight: 600; font-size: 14px; color: #555; }
-
-/* Animations */
-@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 @keyframes slideIn { from { opacity:0; transform: translateX(-20px); } to { opacity:1; transform: translateX(0); } }
-@keyframes bounce { 0%,100% { transform: scale(1); } 50% { transform: scale(1.3); } }
-.bounce { animation: bounce 0.5s; }
+@keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 
-/* Toolbar */
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #EEE;
-  margin-bottom: 12px;
-}
-.toolbar .back-btn {
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
-  color: #666;
-  padding: 4px 8px;
-}
-.toolbar .back-btn:hover { color: var(--blue); }
-.toolbar .profile-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-  font-size: 14px;
-  color: #333;
-}
+.toolbar { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; margin-bottom: 8px; }
+.back-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: #888; }
+.back-btn:hover { color: var(--blue); }
 
-/* Input */
 input[type=text] {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #E0E0E0;
-  border-radius: 12px;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.2s;
+  width: 100%; padding: 12px; border: 2px solid #E0E0E0;
+  border-radius: 12px; font-size: 16px; outline: none;
 }
 input[type=text]:focus { border-color: var(--blue); }
 
-.avatar-select {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin: 12px 0;
+/* Floating particles */
+.particle {
+  position: fixed; pointer-events: none; z-index: 1001;
+  animation: floatUp 1.5s ease-out forwards;
 }
-.avatar-option {
-  font-size: 40px;
-  padding: 8px;
-  border: 2px solid transparent;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.avatar-option:hover, .avatar-option.selected { border-color: var(--blue); background: #E3F2FD; }
-
-.delete-btn {
-  background: none;
-  border: none;
-  color: #CCC;
-  font-size: 14px;
-  cursor: pointer;
-  float: right;
-  margin-top: -6px;
-  margin-right: -4px;
-}
-.delete-btn:hover { color: var(--red); }
-
-.emoji-reward {
-  font-size: 48px;
-  animation: bounce 0.6s ease;
-  text-align: center;
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-120px) scale(1.5); }
 }
 
-.switch-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: 8px 0;
-  font-size: 14px;
-  color: #666;
+.combo-popup {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 48px; font-weight: 900; pointer-events: none; z-index: 1002;
+  animation: comboBurst 0.8s ease-out forwards; color: #FF4500;
+  text-shadow: 0 0 20px rgba(255,69,0,0.5);
+}
+@keyframes comboBurst {
+  0% { transform: translate(-50%,-50%) scale(0); opacity: 1; }
+  50% { transform: translate(-50%,-50%) scale(1.5); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(1) translateY(-80px); opacity: 0; }
 }
 
-/* Responsive */
 @media (max-width: 480px) {
-  .container { padding: 16px; border-radius: 16px; }
-  h1 { font-size: 20px; }
-  .quiz-question { font-size: 17px; padding: 12px; }
-  .option { font-size: 14px; padding: 10px 14px; }
-  .results-stats { grid-template-columns: 1fr 1fr; }
+  .container { padding: 12px; border-radius: 14px; }
+  h1 { font-size: 18px; }
+  .quiz-question { font-size: 16px; padding: 10px; }
+  .option { font-size: 13px; padding: 10px 12px; }
 }
 </style>
 </head>
 <body>
 
 <div class="container" id="app">
-  <!-- Profile Selection Screen -->
-  <div class="screen active" id="screen-profiles">
-    <h1>🌟 Jogo Catequético</h1>
-    <h2>Quiz da Fé Católica</h2>
-    <div class="profiles-grid" id="profiles-list"></div>
-    <button class="btn btn-primary btn-block" onclick="showScreen('screen-new-profile')">➕ Criar Novo Jogador</button>
-    <p style="text-align:center;color:#999;font-size:12px;margin-top:8px;">Escolha seu perfil para jogar</p>
+  <!-- PROFILE SELECTION -->
+  <div class="screen active" id="sc-profiles">
+    <h1>🌟 Jornada da Fé</h1>
+    <h2>Aventura Catequética</h2>
+    <div class="profiles-wrap" id="profiles-wrap"></div>
+    <button class="btn" style="background:var(--blue);color:white;width:100%;" onclick="showScreen('sc-new')">➕ Novo Aventureiro</button>
   </div>
 
-  <!-- New Profile Screen -->
-  <div class="screen" id="screen-new-profile">
+  <!-- NEW PROFILE -->
+  <div class="screen" id="sc-new">
+    <div class="toolbar"><button class="back-btn" onclick="showScreen('sc-profiles')">←</button><span style="font-weight:600;">Novo Aventureiro</span><span></span></div>
+    <input type="text" id="new-name" placeholder="Nome do aventureiro..." maxlength="18" autocomplete="off">
+    <p style="text-align:center;color:#666;font-size:13px;margin:10px 0;">Escolha seu personagem:</p>
+    <div class="avatar-picker" id="avatar-picker"></div>
+    <button class="btn" style="background:var(--green);color:white;width:100%;" onclick="createProfile()">✨ Começar Jornada</button>
+  </div>
+
+  <!-- JOURNEY MAP (MAIN HUB) -->
+  <div class="screen" id="sc-map">
     <div class="toolbar">
-      <button class="back-btn" onclick="showScreen('screen-profiles')">←</button>
-      <span class="profile-badge">Novo Jogador</span>
-      <span></span>
+      <button class="back-btn" onclick="logout()" title="Trocar perfil">🚪</button>
+      <span style="font-weight:600;" id="map-name"></span>
+      <button class="back-btn" onclick="showScreen('sc-gallery')" title="Coleção de Cartas">🃏</button>
     </div>
-    <h2>Criar Perfil</h2>
-    <input type="text" id="new-name" placeholder="Nome do jogador..." maxlength="20" autocomplete="off">
-    <p style="text-align:center;color:#666;font-size:14px;margin:12px 0;">Escolha um avatar:</p>
-    <div class="avatar-select" id="avatar-select"></div>
-    <button class="btn btn-green btn-block" onclick="createProfile()">✨ Criar e Jogar</button>
-  </div>
-
-  <!-- Category Selection -->
-  <div class="screen" id="screen-categories">
-    <div class="toolbar">
-      <button class="back-btn" onclick="logout()">←</button>
-      <span class="profile-badge">
-        <span id="current-avatar"></span>
-        <span id="current-name"></span>
-        <span style="color:var(--gold)">⭐<span id="current-stars">0</span></span>
-      </span>
-      <span></span>
+    <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px;">
+      <span id="xp-text">Nível 1</span><span id="xp-next">0/100 XP</span>
     </div>
-    <h2>Escolha a Categoria</h2>
-    <div id="categories-list"></div>
-    <button class="btn btn-gold btn-block" onclick="startRandomQuiz()">🎲 Modo Surpresa (Todas as Categorias)</button>
+    <div class="map-container">
+      <div class="map-path" id="map-path"></div>
+    </div>
+    <div class="play-area" id="play-area">
+      <div class="region-name" id="region-name">Selecione uma região</div>
+      <div class="region-desc" id="region-desc"></div>
+      <div id="region-action"></div>
+    </div>
+    <div class="collection-bar" id="collection-bar"></div>
+    <div class="stats-bar">
+      <div class="stat-item"><strong id="stat-stars">0</strong>⭐ Estrelas</div>
+      <div class="stat-item"><strong id="stat-cards">0/20</strong>🃏 Cartas</div>
+      <div class="stat-item"><strong id="stat-streak">0</strong>🔥 Recorde</div>
+    </div>
   </div>
 
-  <!-- Quiz Screen -->
-  <div class="screen" id="screen-quiz">
-    <div class="toolbar">
+  <!-- QUIZ -->
+  <div class="screen" id="sc-quiz">
+    <div class="quiz-header">
       <button class="back-btn" onclick="confirmQuit()">←</button>
-      <span class="profile-badge" id="quiz-badge"></span>
-      <span style="font-size:13px;font-weight:600;color:#333;" id="quiz-score-display">0 pts</span>
+      <span class="streak-counter" id="streak-disp">🔥 0</span>
+      <span style="font-weight:600;font-size:14px;" id="quiz-score">0 pts</span>
     </div>
-    <div class="category-tag" id="quiz-category"></div>
-    <div class="progress-bar"><div class="progress-fill" id="quiz-progress" style="width:0%"></div></div>
-    <div class="quiz-question" id="quiz-question"></div>
-    <div class="options" id="quiz-options"></div>
-    <div id="quiz-feedback"></div>
-    <button class="btn btn-primary btn-block" id="btn-next" style="display:none;" onclick="nextQuestion()">Próxima ➡️</button>
+    <div class="category-tag" id="quiz-cat"></div>
+    <div class="progress-bar"><div class="progress-fill" id="quiz-prog" style="width:0%"></div></div>
+    <div class="power-bar" id="power-bar"></div>
+    <div class="quiz-question" id="quiz-q"></div>
+    <div class="options" id="quiz-opts"></div>
+    <div id="quiz-fb"></div>
+    <button class="btn btn-block" style="background:var(--blue);color:white;display:none;" id="btn-next" onclick="nextQuestion()">Próxima ➡️</button>
   </div>
 
-  <!-- Results Screen -->
-  <div class="screen" id="screen-results">
-    <h1 id="results-emoji">🏆</h1>
-    <h2 id="results-title">Resultado!</h2>
-    <div class="results-stats">
-      <div class="stat-card"><div class="value" id="results-correct">0</div><div class="label">Acertos</div></div>
-      <div class="stat-card"><div class="value" id="results-wrong">0</div><div class="label">Erros</div></div>
-      <div class="stat-card"><div class="value" id="results-points">0</div><div class="label">Pontos</div></div>
+  <!-- CARD GALLERY -->
+  <div class="screen" id="sc-gallery">
+    <div class="toolbar"><button class="back-btn" onclick="showScreen('sc-map')">←</button><span style="font-weight:600;">Coleção de Cartas</span><span></span></div>
+    <p style="font-size:13px;color:#888;text-align:center;margin:4px 0;" id="gallery-count">0/20 coletadas</p>
+    <div class="gallery-grid" id="gallery-grid"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="sc-results">
+    <h1 id="res-emoji">🏆</h1>
+    <h2 id="res-title">Missão Concluída!</h2>
+    <div id="res-levelup"></div>
+    <div class="results-grid">
+      <div class="result-card"><div class="rv" id="res-correct">0</div><div class="rl">Acertos</div></div>
+      <div class="result-card"><div class="rv" id="res-wrong">0</div><div class="rl">Erros</div></div>
+      <div class="result-card"><div class="rv" id="res-xp">+0</div><div class="rl">XP Ganho</div></div>
     </div>
-    <div id="results-achievements"></div>
-    <button class="btn btn-primary btn-block" onclick="showScreen('screen-categories')">🎯 Jogar de Novo</button>
-    <button class="btn btn-outline btn-block" onclick="logout()">🏠 Trocar de Perfil</button>
+    <div id="res-achievements"></div>
+    <button class="btn btn-block" style="background:var(--blue);color:white;" onclick="goToMap()">🗺️ Voltar ao Mapa</button>
+    <button class="btn btn-block" style="background:white;border:2px solid #CCC;color:#888;" onclick="logout()">🏠 Trocar Perfil</button>
   </div>
 </div>
 
-<div class="stars-animation" id="stars-container"></div>
+<!-- OVERLAYS -->
+<div class="card-drop-overlay" id="card-overlay" style="display:none;" onclick="closeCardDrop()">
+  <div class="card-drop-box" onclick="event.stopPropagation()">
+    <span class="card-emoji" id="card-emoji"></span>
+    <div class="card-name" id="card-name"></div>
+    <div class="card-fact" id="card-fact"></div>
+    <div class="card-ref" id="card-ref"></div>
+    <button class="btn" style="background:var(--gold);color:#5D4037;margin-top:12px;width:100%;" onclick="closeCardDrop()">Guardar na Coleção! 🃏</button>
+  </div>
+</div>
+
+<div id="reward-overlay" class="reward-overlay"></div>
 
 <script>
-// ============ GAME DATA ============
-const ALL_QUESTIONS = [
-{"id":0,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem criou o mundo e tudo o que existe?","answer":"Deus.","reference":"Gn 1,1 / CIC 279"},
-{"id":1,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Como Deus criou o mundo?","answer":"Pelo poder da Sua palavra, por puro amor.","reference":"Gn 1,3 / CIC 295"},
-{"id":2,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem foram o primeiro homem e a primeira mulher?","answer":"Adão e Eva.","reference":"Gn 2,7.22 / CIC 355"},
-{"id":3,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"O que é o pecado original?","answer":"Foi a desobediência de Adão e Eva a Deus no Paraíso.","reference":"Gn 3,1-24 / CIC 397"},
-{"id":4,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem é o grande inimigo de Deus e das nossas almas?","answer":"O demônio (o anjo rebelde).","reference":"Ap 12,7-9 / CIC 391"},
-{"id":5,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Onde moravam Adão e Eva antes do pecado?","answer":"No Jardim do Éden (Paraíso).","reference":"Gn 2,8-15 / CIC 374"},
-{"id":6,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem construiu a arca para salvar os animais do Dilúvio?","answer":"Noé.","reference":"Gn 6-9 / CIC 845"},
-{"id":7,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem é chamado de \"Pai da Fé\"?","answer":"Abraão.","reference":"Gn 12,1-4 / CIC 145"},
-{"id":8,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem libertou o povo de Deus da escravidão no Egito?","answer":"Moisés.","reference":"Ex 3,10 / CIC 2575"},
-{"id":9,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Como Deus guiou o povo no deserto à noite?","answer":"Com uma coluna de fogo.","reference":"Ex 13,21 / CIC 697"},
-{"id":10,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Que alimento caiu do céu para o povo no deserto?","answer":"O Maná.","reference":"Ex 16 / CIC 1094"},
-{"id":11,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem abriu o Mar Vermelho com o seu cajado?","answer":"Moisés.","reference":"Ex 14,21-22 / CIC 122"},
-{"id":12,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem derrotou o gigante Golias usando apenas uma pedra e uma funda?","answer":"Davi.","reference":"1Sm 17 / CIC 2579"},
-{"id":13,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem foi o rei mais sábio de Israel, que construiu o Primeiro Templo?","answer":"O Rei Salomão.","reference":"1Rs 3 / CIC 2580"},
-{"id":14,"category":"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)","question":"Quem foi jogado na cova dos leões e não foi devorado porque Deus o protegeu?","answer":"O profeta Daniel.","reference":"Dn 6 / CIC 2584"},
-{"id":15,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"O que é a Bíblia Sagrada?","answer":"É a Palavra de Deus escrita por homens inspirados pelo Espírito Santo.","reference":"2Tm 3,16 / CIC 105"},
-{"id":16,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Em quantas partes a Bíblia é dividida?","answer":"Em duas: Antigo Testamento e Novo Testamento.","reference":"CIC 120"},
-{"id":17,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Sobre o que fala o Antigo Testamento?","answer":"Sobre a criação do mundo e a preparação para a vinda de Jesus.","reference":"CIC 121-123"},
-{"id":18,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Sobre o que fala o Novo Testamento?","answer":"Sobre a vida de Jesus, Seus ensinamentos e o início da Igreja.","reference":"CIC 124"},
-{"id":19,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"O que significa a palavra \"Evangelho\"?","answer":"Boa Nova ou Boa Notícia.","reference":"CIC 125"},
-{"id":20,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Quantos e quais são os Evangelistas?","answer":"São quatro: Mateus, Marcos, Lucas e João.","reference":"CIC 120"},
-{"id":21,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Qual é o livro da Bíblia que conta o início de todas as coisas?","answer":"O Livro do Gênesis.","reference":"Gn 1-50 / CIC 289"},
-{"id":22,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Qual é o livro da Bíblia cheio de orações e cânticos?","answer":"O Livro dos Salmos.","reference":"Sl 1-150 / CIC 2585"},
-{"id":23,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Quem escreveu a maioria das cartas (epístolas) do Novo Testamento?","answer":"São Paulo.","reference":"At 9 / CIC 2633"},
-{"id":24,"category":"📖 A Bíblia Sagrada (16 a 25)","question":"Qual é o último livro da Bíblia?","answer":"O Apocalipse.","reference":"Ap 1 / CIC 2640"},
-{"id":25,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem é Jesus Cristo?","answer":"O Filho de Deus feito homem para nos salvar.","reference":"Jo 3,16 / CIC 430"},
-{"id":26,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Em que cidade Jesus nasceu?","answer":"Em Belém.","reference":"Lc 2,4-7 / CIC 525"},
-{"id":27,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Onde Maria colocou Jesus logo após o Seu nascimento?","answer":"Numa manjedoura.","reference":"Lc 2,7 / CIC 525"},
-{"id":28,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem visitou o Menino Jesus guiado por uma estrela?","answer":"Os Três Reis Magos.","reference":"Mt 2,1-12 / CIC 528"},
-{"id":29,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quais foram os presentes dos Três Reis Magos?","answer":"Ouro, incenso e mirra.","reference":"Mt 2,11 / CIC 528"},
-{"id":30,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem é a Mãe de Jesus?","answer":"A Santíssima Virgem Maria.","reference":"Lc 1,26-38 / CIC 488"},
-{"id":31,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem foi o pai adotivo de Jesus na Terra?","answer":"São José.","reference":"Mt 1,18-25 / CIC 437"},
-{"id":32,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Que profissão São José exercia?","answer":"Carpinteiro.","reference":"Mt 13,55 / CIC 531"},
-{"id":33,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Em que cidade Jesus cresceu e viveu Sua infância?","answer":"Nazaré.","reference":"Lc 2,39-40 / CIC 531"},
-{"id":34,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem batizou Jesus no Rio Jordão?","answer":"São João Batista.","reference":"Mt 3,13-17 / CIC 535"},
-{"id":35,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"O que desceu do céu no batismo de Jesus em forma de pomba?","answer":"O Espírito Santo.","reference":"Mt 3,16 / CIC 701"},
-{"id":36,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quantos discípulos principais (apóstolos) Jesus escolheu?","answer":"Doze.","reference":"Mc 3,13-19 / CIC 858"},
-{"id":37,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem foi o primeiro líder dos apóstolos escolhido por Jesus?","answer":"São Pedro.","reference":"Mt 16,18 / CIC 881"},
-{"id":38,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Qual foi o primeiro milagre de Jesus?","answer":"A transformação de água em vinho nas Bodas de Caná.","reference":"Jo 2,1-12 / CIC 2618"},
-{"id":39,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Como Jesus ensinava o povo usando histórias simples?","answer":"Através de parábolas.","reference":"Mc 4,33-34 / CIC 546"},
-{"id":40,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Qual é a parábola que mostra o amor e o perdão de Deus para quem erra?","answer":"A parábola do Filho Pródigo.","reference":"Lc 15,11-32 / CIC 1439"},
-{"id":41,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem Jesus ressuscitou depois de estar morto há quatro dias?","answer":"Lázaro.","reference":"Jo 11,1-44 / CIC 640"},
-{"id":42,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Como Jesus acalmou a tempestade no mar?","answer":"Ele ordenou ao vento e ao mar que se calassem.","reference":"Mc 4,39 / CIC 447"},
-{"id":43,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quantos pães e peixes Jesus multiplicou para alimentar a multidão?","answer":"Cinco pães e dois peixes.","reference":"Mt 14,13-21 / CIC 1335"},
-{"id":44,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Qual apóstolo traiu Jesus por trinta moedas de prata?","answer":"Judas Iscariotes.","reference":"Mt 26,14-16 / CIC 597"},
-{"id":45,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Em que dia Jesus morreu na cruz?","answer":"Na Sexta-feira Santa.","reference":"Mc 15 / CIC 613"},
-{"id":46,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"O que aconteceu três dias depois da morte de Jesus?","answer":"Ele ressuscitou (Páscoa).","reference":"Mt 28 / CIC 638"},
-{"id":47,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"O que significa a Ascensão de Jesus?","answer":"A Sua subida ao Céu, quarenta dias após a Ressurreição.","reference":"At 1,9-11 / CIC 659"},
-{"id":48,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Quem Jesus prometeu enviar para ficar conosco após Sua subida ao Céu?","answer":"O Espírito Santo.","reference":"Jo 14,26 / CIC 729"},
-{"id":49,"category":"👶 Jesus Cristo, o Salvador (26 a 50)","question":"Qual é o maior mandamento que Jesus nos deixou?","answer":"\"Amai-vos uns aos outros como Eu vos amei.\"","reference":"Jo 15,12 / CIC 1823"},
-{"id":50,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quem fundou a Igreja Católica?","answer":"O próprio Jesus Cristo.","reference":"Mt 16,18 / CIC 763"},
-{"id":51,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que aconteceu no dia de Pentecostes?","answer":"O Espírito Santo desceu sobre Nossa Senhora e os apóstolos.","reference":"At 2,1-4 / CIC 731"},
-{"id":52,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quem é o chefe visível da Igreja na Terra hoje?","answer":"O Papa.","reference":"CIC 882"},
-{"id":53,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quem é o chefe invisível e eterno da Igreja?","answer":"Jesus Cristo.","reference":"Ef 1,22 / CIC 792"},
-{"id":54,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Onde o Papa mora?","answer":"No Vaticano, em Roma.","reference":"CIC 882"},
-{"id":55,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quem ajuda o Papa a cuidar da Igreja em cada cidade ou região?","answer":"Os Bispos e os Padres.","reference":"CIC 886"},
-{"id":56,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que é a Santíssima Trindade?","answer":"É um só Deus em três Pessoas: Pai, Filho e Espírito Santo.","reference":"CIC 253-255"},
-{"id":57,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Como se chama a oração que resume todas as verdades da nossa fé?","answer":"O Credo.","reference":"CIC 194"},
-{"id":58,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quem é o nosso Anjo da Guarda?","answer":"Um anjo protetor dado por Deus a cada um de nós desde o nascimento.","reference":"CIC 336"},
-{"id":59,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que é a graça de Deus?","answer":"É a própria vida e amizade de Deus dentro da nossa alma.","reference":"CIC 1997"},
-{"id":60,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que é a oração?","answer":"É conversar com Deus, que nos ama.","reference":"CIC 2559"},
-{"id":61,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Qual é a oração que o próprio Jesus nos ensinou?","answer":"O Pai-Nosso.","reference":"Mt 6,9-13 / CIC 2759"},
-{"id":62,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Qual é a oração que fazemos para saudar Nossa Senhora?","answer":"A Ave-Maria.","reference":"Lc 1,28.42 / CIC 2676"},
-{"id":63,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quantos mistérios contemplamos ao rezar o Santo Terço completo (o Rosário)?","answer":"Quatro mistérios (Gozozos, Luminosos, Dolorosos e Gloriosos).","reference":"CIC 2678"},
-{"id":64,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que significa a palavra \"Amém\"?","answer":"\"Assim seja\" ou \"Eu creio\".","reference":"CIC 2856"},
-{"id":65,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Qual é o sinal do cristão que fazemos no corpo?","answer":"O Sinal da Cruz (Pelo sinal da santa cruz...).","reference":"CIC 2157"},
-{"id":66,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"Quem foi a única criatura humana que nasceu sem o pecado original?","answer":"Nossa Senhora (Imaculada Conceição).","reference":"CIC 491"},
-{"id":67,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que é a Comunhão dos Santos?","answer":"É a união de todos os cristãos da Terra, do Purgatório e do Céu.","reference":"CIC 946-953"},
-{"id":68,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que acontece com a alma de quem morre na amizade perfeita com Deus?","answer":"Vai para o Céu.","reference":"CIC 1023"},
-{"id":69,"category":"⛪ A Igreja e a Nossa Fé (51 a 70)","question":"O que é o Purgatório?","answer":"O lugar de purificação para as almas que morrem na graça de Deus, mas ainda precisam se limpar de suas faltas antes de entrar no Céu.","reference":"CIC 1030"},
-{"id":70,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"A quem Deus entregou as Tábuas das Leis com os 10 Mandamentos?","answer":"A Moisés, no Monte Sinai.","reference":"Ex 20 / CIC 2056"},
-{"id":71,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 1º Mandamento?","answer":"Amar a Deus sobre todas as coisas.","reference":"Ex 20,2-3 / CIC 2084"},
-{"id":72,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 2º Mandamento?","answer":"Não tomar Seu santo nome em vão.","reference":"Ex 20,7 / CIC 2142"},
-{"id":73,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 3º Mandamento?","answer":"Guardar domingos e festas de guarda (ir à Missa).","reference":"Ex 20,8 / CIC 2168"},
-{"id":74,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 4º Mandamento?","answer":"Honrar pai e mãe.","reference":"Ex 20,12 / CIC 2197"},
-{"id":75,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 5º Mandamento?","answer":"Não matar.","reference":"Ex 20,13 / CIC 2258"},
-{"id":76,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 6º Mandamento?","answer":"Guardar castidade (não pecar contra a pureza).","reference":"Ex 20,14 / CIC 2331"},
-{"id":77,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 7º Mandamento?","answer":"Não roubar.","reference":"Ex 20,15 / CIC 2401"},
-{"id":78,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 8º Mandamento?","answer":"Não levantar falso testemunho (não mentir).","reference":"Ex 20,16 / CIC 2464"},
-{"id":79,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 9º Mandamento?","answer":"Não desejar a mulher do próximo.","reference":"Ex 20,17 / CIC 2514"},
-{"id":80,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Qual é o 10º Mandamento?","answer":"Não cobiçar as coisas do próximo.","reference":"Ex 20,17 / CIC 2534"},
-{"id":81,"category":"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)","question":"Em quantos mandamentos se resumem os dez?","answer":"Em dois: Amar a Deus sobre todas as coisas e ao próximo como a si mesmo.","reference":"Mt 22,36-40 / CIC 2055"},
-{"id":82,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que são os Sacramentos?","answer":"Sinais visíveis instituídos por Jesus para nos dar a Sua graça.","reference":"CIC 1131"},
-{"id":83,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Quantos são os Sacramentos?","answer":"Sete.","reference":"CIC 1210"},
-{"id":84,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Qual é o primeiro Sacramento que recebemos, que nos torna filhos de Deus e limpa o pecado original?","answer":"O Batismo.","reference":"CIC 1213"},
-{"id":85,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Quem nos batiza normalmente?","answer":"O Padre ou o Diácono.","reference":"CIC 1256"},
-{"id":86,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Que água especial é usada no Batismo?","answer":"A água benta.","reference":"CIC 1238"},
-{"id":87,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Qual Sacramento confirma o nosso Batismo e nos dá a força do Espírito Santo para sermos testemunhas de Jesus?","answer":"A Confirmação ou Crisma.","reference":"CIC 1285"},
-{"id":88,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que recebemos na Sagrada Eucaristia?","answer":"O Corpo e o Sangue de Jesus Cristo de verdade.","reference":"CIC 1324"},
-{"id":89,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que acontece com o pão e o vinho durante a Missa?","answer":"Eles se transformam no Corpo e no Sangue de Jesus (Consagração).","reference":"CIC 1375"},
-{"id":90,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Como se chama o Sacramento onde Deus perdoa os nossos pecados através do padre?","answer":"Sacramento da Reconciliação, Confissão ou Penitência.","reference":"CIC 1422"},
-{"id":91,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que devemos fazer antes de ir confessar com o padre?","answer":"O exame de consciência (lembrar dos pecados e se arrepender).","reference":"CIC 1454"},
-{"id":92,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que o padre nos dá no final da confissão para apagar nossos pecados?","answer":"A absolvição.","reference":"CIC 1449"},
-{"id":93,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Qual é o Sacramento dos doentes graves ou idosos, para lhes dar força espiritual e saúde?","answer":"A Unção dos Enfermos.","reference":"CIC 1499"},
-{"id":94,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Qual é o Sacramento que consagra os homens como diáconos, padres ou bispos?","answer":"O Sacramento da Ordem.","reference":"CIC 1536"},
-{"id":95,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Qual é o Sacramento que une o homem e a mulher no amor para formar uma família cristã?","answer":"O Matrimônio.","reference":"CIC 1601"},
-{"id":96,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que é o pecado mortal?","answer":"Uma desobediência grave à lei de Deus que destrói a caridade no coração.","reference":"CIC 1855"},
-{"id":97,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"O que é o pecado venial?","answer":"Uma falta mais leve contra Deus que enfraquece a nossa amizade com Ele, mas não a destrói totalmente.","reference":"CIC 1862"},
-{"id":98,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Quantos são os Mandamentos da Igreja (as cinco obrigações básicas)?","answer":"Cinco (Participar da missa aos domingos, confessar-se ao menos uma vez ao ano, comungar ao menos pela Páscoa, jejuar nos dias estipulados e ajudar a Igreja em suas necessidades).","reference":"CIC 2042-2043"},
-{"id":99,"category":"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)","question":"Qual deve ser o maior objetivo de toda criança e adulto católico nesta vida?","answer":"Ser santo e chegar ao Céu para viver com Deus para sempre.","reference":"CIC 2013"}
+// ============ QUESTIONS DATA ============
+const Q = [
+{id:0,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Quem criou o mundo e tudo o que existe?",a:"Deus.",ref:"Gn 1,1 / CIC 279"},
+{id:1,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Como Deus criou o mundo?",a:"Pelo poder da Sua palavra, por puro amor.",ref:"Gn 1,3 / CIC 295"},
+{id:2,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Quem foram o primeiro homem e a primeira mulher?",a:"Adão e Eva.",ref:"Gn 2,7.22 / CIC 355"},
+{id:3,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"O que é o pecado original?",a:"Foi a desobediência de Adão e Eva a Deus no Paraíso.",ref:"Gn 3,1-24 / CIC 397"},
+{id:4,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Quem é o grande inimigo de Deus e das nossas almas?",a:"O demônio (o anjo rebelde).",ref:"Ap 12,7-9 / CIC 391"},
+{id:5,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Onde moravam Adão e Eva antes do pecado?",a:"No Jardim do Éden (Paraíso).",ref:"Gn 2,8-15 / CIC 374"},
+{id:6,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Quem construiu a arca para salvar os animais do Dilúvio?",a:"Noé.",ref:"Gn 6-9 / CIC 845"},
+{id:7,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:'Quem é chamado de "Pai da Fé"?',a:"Abraão.",ref:"Gn 12,1-4 / CIC 145"},
+{id:8,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Quem libertou o povo de Deus da escravidão no Egito?",a:"Moisés.",ref:"Ex 3,10 / CIC 2575"},
+{id:9,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Como Deus guiou o povo no deserto à noite?",a:"Com uma coluna de fogo.",ref:"Ex 13,21 / CIC 697"},
+{id:10,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Que alimento caiu do céu para o povo no deserto?",a:"O Maná.",ref:"Ex 16 / CIC 1094"},
+{id:11,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Quem abriu o Mar Vermelho com o seu cajado?",a:"Moisés.",ref:"Ex 14,21-22 / CIC 122"},
+{id:12,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Quem derrotou o gigante Golias usando apenas uma pedra e uma funda?",a:"Davi.",ref:"1Sm 17 / CIC 2579"},
+{id:13,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Quem foi o rei mais sábio de Israel, que construiu o Primeiro Templo?",a:"O Rei Salomão.",ref:"1Rs 3 / CIC 2580"},
+{id:14,cat:"🌟 Deus, a Criação e o Começo de Tudo (1 a 15)",q:"Quem foi jogado na cova dos leões e não foi devorado porque Deus o protegeu?",a:"O profeta Daniel.",ref:"Dn 6 / CIC 2584"},
+{id:15,cat:"📖 A Bíblia Sagrada (16 a 25)",q:"O que é a Bíblia Sagrada?",a:"É a Palavra de Deus escrita por homens inspirados pelo Espírito Santo.",ref:"2Tm 3,16 / CIC 105"},
+{id:16,cat:"📖 A Bíblia Sagrada (16 a 25)",q:"Em quantas partes a Bíblia é dividida?",a:"Em duas: Antigo Testamento e Novo Testamento.",ref:"CIC 120"},
+{id:17,cat:"📖 A Bíblia Sagrada (16 a 25)",q:"Sobre o que fala o Antigo Testamento?",a:"Sobre a criação do mundo e a preparação para a vinda de Jesus.",ref:"CIC 121-123"},
+{id:18,cat:"📖 A Bíblia Sagrada (16 a 25)",q:"Sobre o que fala o Novo Testamento?",a:"Sobre a vida de Jesus, Seus ensinamentos e o início da Igreja.",ref:"CIC 124"},
+{id:19,cat:"📖 A Bíblia Sagrada (16 a 25)",q:'O que significa a palavra "Evangelho"?',a:"Boa Nova ou Boa Notícia.",ref:"CIC 125"},
+{id:20,cat:"📖 A Bíblia Sagrada (16 a 25)",q:"Quantos e quais são os Evangelistas?",a:"São quatro: Mateus, Marcos, Lucas e João.",ref:"CIC 120"},
+{id:21,cat:"📖 A Bíblia Sagrada (16 a 25)",q:"Qual é o livro da Bíblia que conta o início de todas as coisas?",a:"O Livro do Gênesis.",ref:"Gn 1-50 / CIC 289"},
+{id:22,cat:"📖 A Bíblia Sagrada (16 a 25)",q:"Qual é o livro da Bíblia cheio de orações e cânticos?",a:"O Livro dos Salmos.",ref:"Sl 1-150 / CIC 2585"},
+{id:23,cat:"📖 A Bíblia Sagrada (16 a 25)",q:"Quem escreveu a maioria das cartas (epístolas) do Novo Testamento?",a:"São Paulo.",ref:"At 9 / CIC 2633"},
+{id:24,cat:"📖 A Bíblia Sagrada (16 a 25)",q:"Qual é o último livro da Bíblia?",a:"O Apocalipse.",ref:"Ap 1 / CIC 2640"},
+{id:25,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Quem é Jesus Cristo?",a:"O Filho de Deus feito homem para nos salvar.",ref:"Jo 3,16 / CIC 430"},
+{id:26,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Em que cidade Jesus nasceu?",a:"Em Belém.",ref:"Lc 2,4-7 / CIC 525"},
+{id:27,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Onde Maria colocou Jesus logo após o Seu nascimento?",a:"Numa manjedoura.",ref:"Lc 2,7 / CIC 525"},
+{id:28,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Quem visitou o Menino Jesus guiado por uma estrela?",a:"Os Três Reis Magos.",ref:"Mt 2,1-12 / CIC 528"},
+{id:29,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Quais foram os presentes dos Três Reis Magos?",a:"Ouro, incenso e mirra.",ref:"Mt 2,11 / CIC 528"},
+{id:30,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Quem é a Mãe de Jesus?",a:"A Santíssima Virgem Maria.",ref:"Lc 1,26-38 / CIC 488"},
+{id:31,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Quem foi o pai adotivo de Jesus na Terra?",a:"São José.",ref:"Mt 1,18-25 / CIC 437"},
+{id:32,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Que profissão São José exercia?",a:"Carpinteiro.",ref:"Mt 13,55 / CIC 531"},
+{id:33,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Em que cidade Jesus cresceu e viveu Sua infância?",a:"Nazaré.",ref:"Lc 2,39-40 / CIC 531"},
+{id:34,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Quem batizou Jesus no Rio Jordão?",a:"São João Batista.",ref:"Mt 3,13-17 / CIC 535"},
+{id:35,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"O que desceu do céu no batismo de Jesus em forma de pomba?",a:"O Espírito Santo.",ref:"Mt 3,16 / CIC 701"},
+{id:36,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Quantos discípulos principais (apóstolos) Jesus escolheu?",a:"Doze.",ref:"Mc 3,13-19 / CIC 858"},
+{id:37,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Quem foi o primeiro líder dos apóstolos escolhido por Jesus?",a:"São Pedro.",ref:"Mt 16,18 / CIC 881"},
+{id:38,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Qual foi o primeiro milagre de Jesus?",a:"A transformação de água em vinho nas Bodas de Caná.",ref:"Jo 2,1-12 / CIC 2618"},
+{id:39,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Como Jesus ensinava o povo usando histórias simples?",a:"Através de parábolas.",ref:"Mc 4,33-34 / CIC 546"},
+{id:40,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Qual é a parábola que mostra o amor e o perdão de Deus para quem erra?",a:"A parábola do Filho Pródigo.",ref:"Lc 15,11-32 / CIC 1439"},
+{id:41,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Quem Jesus ressuscitou depois de estar morto há quatro dias?",a:"Lázaro.",ref:"Jo 11,1-44 / CIC 640"},
+{id:42,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Como Jesus acalmou a tempestade no mar?",a:"Ele ordenou ao vento e ao mar que se calassem.",ref:"Mc 4,39 / CIC 447"},
+{id:43,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Quantos pães e peixes Jesus multiplicou para alimentar a multidão?",a:"Cinco pães e dois peixes.",ref:"Mt 14,13-21 / CIC 1335"},
+{id:44,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Qual apóstolo traiu Jesus por trinta moedas de prata?",a:"Judas Iscariotes.",ref:"Mt 26,14-16 / CIC 597"},
+{id:45,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Em que dia Jesus morreu na cruz?",a:"Na Sexta-feira Santa.",ref:"Mc 15 / CIC 613"},
+{id:46,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"O que aconteceu três dias depois da morte de Jesus?",a:"Ele ressuscitou (Páscoa).",ref:"Mt 28 / CIC 638"},
+{id:47,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"O que significa a Ascensão de Jesus?",a:"A Sua subida ao Céu, quarenta dias após a Ressurreição.",ref:"At 1,9-11 / CIC 659"},
+{id:48,cat:"👶 Jesus Cristo, o Salvador (26 a 50)",q:"Quem Jesus prometeu enviar para ficar conosco após Sua subida ao Céu?",a:"O Espírito Santo.",ref:"Jo 14,26 / CIC 729"},
+{id:49,cat:'👶 Jesus Cristo, o Salvador (26 a 50)',q:'Qual é o maior mandamento que Jesus nos deixou?',a:'"Amai-vos uns aos outros como Eu vos amei."',ref:"Jo 15,12 / CIC 1823"},
+{id:50,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"Quem fundou a Igreja Católica?",a:"O próprio Jesus Cristo.",ref:"Mt 16,18 / CIC 763"},
+{id:51,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"O que aconteceu no dia de Pentecostes?",a:"O Espírito Santo desceu sobre Nossa Senhora e os apóstolos.",ref:"At 2,1-4 / CIC 731"},
+{id:52,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"Quem é o chefe visível da Igreja na Terra hoje?",a:"O Papa.",ref:"CIC 882"},
+{id:53,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"Quem é o chefe invisível e eterno da Igreja?",a:"Jesus Cristo.",ref:"Ef 1,22 / CIC 792"},
+{id:54,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"Onde o Papa mora?",a:"No Vaticano, em Roma.",ref:"CIC 882"},
+{id:55,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"Quem ajuda o Papa a cuidar da Igreja em cada cidade ou região?",a:"Os Bispos e os Padres.",ref:"CIC 886"},
+{id:56,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"O que é a Santíssima Trindade?",a:"É um só Deus em três Pessoas: Pai, Filho e Espírito Santo.",ref:"CIC 253-255"},
+{id:57,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"Como se chama a oração que resume todas as verdades da nossa fé?",a:"O Credo.",ref:"CIC 194"},
+{id:58,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"Quem é o nosso Anjo da Guarda?",a:"Um anjo protetor dado por Deus a cada um de nós desde o nascimento.",ref:"CIC 336"},
+{id:59,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"O que é a graça de Deus?",a:"É a própria vida e amizade de Deus dentro da nossa alma.",ref:"CIC 1997"},
+{id:60,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"O que é a oração?",a:"É conversar com Deus, que nos ama.",ref:"CIC 2559"},
+{id:61,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"Qual é a oração que o próprio Jesus nos ensinou?",a:"O Pai-Nosso.",ref:"Mt 6,9-13 / CIC 2759"},
+{id:62,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"Qual é a oração que fazemos para saudar Nossa Senhora?",a:"A Ave-Maria.",ref:"Lc 1,28.42 / CIC 2676"},
+{id:63,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"Quantos mistérios contemplamos ao rezar o Santo Terço completo (o Rosário)?",a:"Quatro mistérios (Gozozos, Luminosos, Dolorosos e Gloriosos).",ref:"CIC 2678"},
+{id:64,cat:'⛪ A Igreja e a Nossa Fé (51 a 70)',q:'O que significa a palavra "Amém"?',a:'"Assim seja" ou "Eu creio".',ref:"CIC 2856"},
+{id:65,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"Qual é o sinal do cristão que fazemos no corpo?",a:"O Sinal da Cruz (Pelo sinal da santa cruz...).",ref:"CIC 2157"},
+{id:66,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"Quem foi a única criatura humana que nasceu sem o pecado original?",a:"Nossa Senhora (Imaculada Conceição).",ref:"CIC 491"},
+{id:67,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"O que é a Comunhão dos Santos?",a:"É a união de todos os cristãos da Terra, do Purgatório e do Céu.",ref:"CIC 946-953"},
+{id:68,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"O que acontece com a alma de quem morre na amizade perfeita com Deus?",a:"Vai para o Céu.",ref:"CIC 1023"},
+{id:69,cat:"⛪ A Igreja e a Nossa Fé (51 a 70)",q:"O que é o Purgatório?",a:"O lugar de purificação para as almas que morrem na graça de Deus, mas ainda precisam se limpar de suas faltas antes de entrar no Céu.",ref:"CIC 1030"},
+{id:70,cat:"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)",q:"A quem Deus entregou as Tábuas das Leis com os 10 Mandamentos?",a:"A Moisés, no Monte Sinai.",ref:"Ex 20 / CIC 2056"},
+{id:71,cat:"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)",q:"Qual é o 1º Mandamento?",a:"Amar a Deus sobre todas as coisas.",ref:"Ex 20,2-3 / CIC 2084"},
+{id:72,cat:"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)",q:"Qual é o 2º Mandamento?",a:"Não tomar Seu santo nome em vão.",ref:"Ex 20,7 / CIC 2142"},
+{id:73,cat:"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)",q:"Qual é o 3º Mandamento?",a:"Guardar domingos e festas de guarda (ir à Missa).",ref:"Ex 20,8 / CIC 2168"},
+{id:74,cat:"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)",q:"Qual é o 4º Mandamento?",a:"Honrar pai e mãe.",ref:"Ex 20,12 / CIC 2197"},
+{id:75,cat:"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)",q:"Qual é o 5º Mandamento?",a:"Não matar.",ref:"Ex 20,13 / CIC 2258"},
+{id:76,cat:"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)",q:"Qual é o 6º Mandamento?",a:"Guardar castidade (não pecar contra a pureza).",ref:"Ex 20,14 / CIC 2331"},
+{id:77,cat:"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)",q:"Qual é o 7º Mandamento?",a:"Não roubar.",ref:"Ex 20,15 / CIC 2401"},
+{id:78,cat:"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)",q:"Qual é o 8º Mandamento?",a:"Não levantar falso testemunho (não mentir).",ref:"Ex 20,16 / CIC 2464"},
+{id:79,cat:"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)",q:"Qual é o 9º Mandamento?",a:"Não desejar a mulher do próximo.",ref:"Ex 20,17 / CIC 2514"},
+{id:80,cat:"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)",q:"Qual é o 10º Mandamento?",a:"Não cobiçar as coisas do próximo.",ref:"Ex 20,17 / CIC 2534"},
+{id:81,cat:"📜 Os 10 Mandamentos da Lei de Deus (71 a 82)",q:"Em quantos mandamentos se resumem os dez?",a:"Em dois: Amar a Deus sobre todas as coisas e ao próximo como a si mesmo.",ref:"Mt 22,36-40 / CIC 2055"},
+{id:82,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"O que são os Sacramentos?",a:"Sinais visíveis instituídos por Jesus para nos dar a Sua graça.",ref:"CIC 1131"},
+{id:83,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"Quantos são os Sacramentos?",a:"Sete.",ref:"CIC 1210"},
+{id:84,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"Qual é o primeiro Sacramento que recebemos, que nos torna filhos de Deus e limpa o pecado original?",a:"O Batismo.",ref:"CIC 1213"},
+{id:85,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"Quem nos batiza normalmente?",a:"O Padre ou o Diácono.",ref:"CIC 1256"},
+{id:86,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"Que água especial é usada no Batismo?",a:"A água benta.",ref:"CIC 1238"},
+{id:87,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"Qual Sacramento confirma o nosso Batismo e nos dá a força do Espírito Santo para sermos testemunhas de Jesus?",a:"A Confirmação ou Crisma.",ref:"CIC 1285"},
+{id:88,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"O que recebemos na Sagrada Eucaristia?",a:"O Corpo e o Sangue de Jesus Cristo de verdade.",ref:"CIC 1324"},
+{id:89,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"O que acontece com o pão e o vinho durante a Missa?",a:"Eles se transformam no Corpo e no Sangue de Jesus (Consagração).",ref:"CIC 1375"},
+{id:90,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"Como se chama o Sacramento onde Deus perdoa os nossos pecados através do padre?",a:"Sacramento da Reconciliação, Confissão ou Penitência.",ref:"CIC 1422"},
+{id:91,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"O que devemos fazer antes de ir confessar com o padre?",a:"O exame de consciência (lembrar dos pecados e se arrepender).",ref:"CIC 1454"},
+{id:92,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"O que o padre nos dá no final da confissão para apagar nossos pecados?",a:"A absolvição.",ref:"CIC 1449"},
+{id:93,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"Qual é o Sacramento dos doentes graves ou idosos, para lhes dar força espiritual e saúde?",a:"A Unção dos Enfermos.",ref:"CIC 1499"},
+{id:94,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"Qual é o Sacramento que consagra os homens como diáconos, padres ou bispos?",a:"O Sacramento da Ordem.",ref:"CIC 1536"},
+{id:95,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"Qual é o Sacramento que une o homem e a mulher no amor para formar uma família cristã?",a:"O Matrimônio.",ref:"CIC 1601"},
+{id:96,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"O que é o pecado mortal?",a:"Uma desobediência grave à lei de Deus que destrói a caridade no coração.",ref:"CIC 1855"},
+{id:97,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"O que é o pecado venial?",a:"Uma falta mais leve contra Deus que enfraquece a nossa amizade com Ele, mas não a destrói totalmente.",ref:"CIC 1862"},
+{id:98,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"Quantos são os Mandamentos da Igreja (as cinco obrigações básicas)?",a:"Cinco (Participar da missa aos domingos, confessar-se ao menos uma vez ao ano, comungar ao menos pela Páscoa, jejuar nos dias estipulados e ajudar a Igreja em suas necessidades).",ref:"CIC 2042-2043"},
+{id:99,cat:"💧 Os 7 Sacramentos e a Vida Cristã (83 a 100)",q:"Qual deve ser o maior objetivo de toda criança e adulto católico nesta vida?",a:"Ser santo e chegar ao Céu para viver com Deus para sempre.",ref:"CIC 2013"}
 ];
 
-const CATEGORIES = [...new Set(ALL_QUESTIONS.map(q => q.category))];
-const AVATARS = ['😇','🙏','🕊️','✝️','🌟','💒','📿','🕯️','👼','🐑','🌿','💜'];
-const STORAGE_KEY = 'catequiz_game';
+// ============ SAINT CARDS (20 collectibles) ============
+const SAINTS = [
+  {n:"São Miguel Arcanjo",e:"⚔️",fact:"Líder dos exércitos celestes. Seu nome significa 'Quem como Deus?'",ref:"Ap 12,7-9"},
+  {n:"Nossa Senhora Aparecida",e:"👑",fact:"Padroeira do Brasil. Apareceu nas águas do rio Paraíba em 1717.",ref:"Lc 1,46-55"},
+  {n:"São Francisco de Assis",e:"🐦",fact:"Amava tanto a natureza que chamava o Sol de 'irmão' e a Lua de 'irmã'.",ref:"CIC 326"},
+  {n:"Santa Teresinha do Menino Jesus",e:"🌹",fact:"Prometeu fazer chover rosas de bênçãos do Céu. Doutora da Igreja.",ref:"CIC 127"},
+  {n:"São João Paulo II",e:"🇻🇦",fact:"Papa por 27 anos. Amava os jovens e criou as Jornadas Mundiais da Juventude.",ref:"CIC 881"},
+  {n:"São José",e:"🪚",fact:"Carpinteiro, esposo de Maria e pai adotivo de Jesus. Padroeiro dos trabalhadores.",ref:"Mt 13,55"},
+  {n:"Santa Cecília",e:"🎵",fact:"Padroeira dos músicos. Cantava a Deus enquanto era martirizada.",ref:"CIC 1156"},
+  {n:"São Jorge",e:"🐉",fact:"Soldado romano que defendeu a fé. Padroeiro dos escoteiros.",ref:"Ap 12,11"},
+  {n:"São Bento",e:"📿",fact:"Criou a Regra dos mosteiros: 'Ora et Labora' (Reza e Trabalha). Sua medalha é sinal de proteção.",ref:"CIC 927"},
+  {n:"Santa Clara de Assis",e:"✨",fact:"Primeira mulher a seguir São Francisco. Padroeira da televisão.",ref:"CIC 2715"},
+  {n:"São Martinho de Tours",e:"🧥",fact:"Cortou sua capa ao meio para dar metade a um mendigo. Padroeiro dos soldados.",ref:"CIC 2447"},
+  {n:"Santa Luzia",e:"👁️",fact:"Padroeira dos olhos e da visão. Seu nome significa 'luz'.",ref:"CIC 957"},
+  {n:"São Sebastião",e:"🏹",fact:"Soldado que sobreviveu às flechas e continuou pregando. Padroeiro contra a peste.",ref:"CIC 2473"},
+  {n:"Santa Paulina",e:"🌸",fact:"Primeira santa brasileira! Cuidava dos doentes e fundou uma congregação.",ref:"CIC 2448"},
+  {n:"São João Batista",e:"🌊",fact:"Batizou Jesus no Rio Jordão. Viveu no deserto comendo gafanhotos e mel.",ref:"Mt 3,13-17"},
+  {n:"Santa Edwiges",e:"🍞",fact:"Padroeira dos pobres e endividados. Dava pão aos famintos.",ref:"CIC 2447"},
+  {n:"São Domingos Sávio",e:"😇",fact:"Morreu aos 14 anos. Seu lema: 'Antes morrer que pecar'. Padroeiro das crianças!",ref:"CIC 2013"},
+  {n:"Santo Antônio",e:"👶",fact:"Doutor da Igreja. Padroeiro dos pobres e conhecido por ajudar a encontrar objetos perdidos.",ref:"CIC 2684"},
+  {n:"Santa Faustina",e:"💖",fact:"Recebeu a revelação da Divina Misericórdia. 'Jesus, eu confio em Vós!'",ref:"CIC 1847"},
+  {n:"São Pedro",e:"🔑",fact:"Primeiro Papa. Jesus lhe deu as chaves do Reino dos Céus.",ref:"Mt 16,18-19"}
+];
 
-// ============ STATE ============
-let currentProfile = null;
-let currentQuiz = null;
-let gameData = loadGameData();
+// ============ GAME ENGINE ============
+const AVATARS = ['😇','🙏','🕊️','✝️','🌟','💒','📿','🕯️','👼','🐑','🌿','💜','🔥','⛪','🕊️','🎚️'];
+const CATS = [...new Set(Q.map(q=>q.cat))];
+const CAT_ICONS = ['🌍','📚','✝️','⛪','📋','💧'];
+const CAT_SHORT = ['Criação','Bíblia','Jesus','Igreja','Mandamentos','Sacramentos'];
+const STORAGE = 'catquiz_v2';
 
-function loadGameData() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { profiles: {} }; }
-  catch(e) { return { profiles: {} }; }
+let GD = loadData();
+let CP = null; // current profile name
+let CQ = null; // current quiz state
+let audioCtx = null;
+let _dropCardIdx = -1; // card currently being shown in drop overlay
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(STORAGE)) || {profiles:{}}; }
+  catch(e) { return {profiles:{}}; }
 }
-function saveGameData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(gameData));
-}
+function saveData() { localStorage.setItem(STORAGE, JSON.stringify(GD)); }
 
-// ============ SCREENS ============
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const screen = document.getElementById(id);
-  if (screen) screen.classList.add('active');
+// Audio
+function beep(freq,dur,type='sine',vol=0.15) {
+  if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type=type; o.frequency.value=freq; g.gain.value=vol;
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime+dur);
+}
+function sfxCorrect() { beep(523,0.1); setTimeout(()=>beep(659,0.1),100); setTimeout(()=>beep(784,0.15),200); }
+function sfxWrong() { beep(200,0.2,'triangle'); }
+function sfxLevelUp() { beep(523,0.1); setTimeout(()=>beep(659,0.1),100); setTimeout(()=>beep(784,0.1),200); setTimeout(()=>beep(1047,0.3),300); }
+function sfxCard() { beep(880,0.08); setTimeout(()=>beep(1100,0.08),80); setTimeout(()=>beep(1320,0.12),160); setTimeout(()=>beep(1760,0.2),240); }
+function sfxCombo() { beep(600,0.06); setTimeout(()=>beep(800,0.06),60); setTimeout(()=>beep(1000,0.08),120); }
+
+// Screens
+function showSc(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
 // ============ PROFILES ============
 function renderProfiles() {
-  const container = document.getElementById('profiles-list');
-  const profiles = gameData.profiles;
-  const entries = Object.entries(profiles);
-  
-  let html = '';
-  for (const [name, data] of entries) {
-    const stars = data.stars || 0;
-    const points = data.points || 0;
-    html += `
-      <div class="profile-card" onclick="selectProfile('${escapeHTML(name)}')">
-        <button class="delete-btn" onclick="event.stopPropagation(); deleteProfile('${escapeHTML(name)}')" title="Remover">✕</button>
-        <span class="avatar">${data.avatar || '😇'}</span>
-        <div class="name">${escapeHTML(name)}</div>
-        <div class="score">${points} pontos</div>
-        <div class="stars-display">${'⭐'.repeat(Math.min(stars, 20))}</div>
-      </div>`;
+  const w = document.getElementById('profiles-wrap');
+  let h = '';
+  for (const [n,d] of Object.entries(GD.profiles)) {
+    h += `<div class="profile-bubble" onclick="login('${esc(n)}')">
+      <button class="delete-btn" onclick="event.stopPropagation();delProfile('${esc(n)}')">✕</button>
+      <span class="av">${d.av||'😇'}</span>
+      <div class="nm">${esc(n)}</div>
+      <div class="lv">Nível ${d.lv||1} · ${d.stars||0}⭐</div>
+    </div>`;
   }
-  html += `<div class="profile-card new-profile" onclick="showScreen('screen-new-profile')">➕</div>`;
-  container.innerHTML = html || '<p style="text-align:center;color:#999;">Nenhum perfil ainda. Crie o primeiro!</p>';
+  h += `<div class="new-profile-bubble" onclick="showSc('sc-new')">➕</div>`;
+  w.innerHTML = h;
 }
-
-function deleteProfile(name) {
-  if (!confirm(`Remover o perfil de "${name}"?`)) return;
-  delete gameData.profiles[name];
-  saveGameData();
+function delProfile(n) {
+  if (!confirm(`Apagar o perfil de "${n}"?`)) return;
+  delete GD.profiles[n]; saveData();
+  if (CP === n) { CP = null; }
   renderProfiles();
 }
-
-function selectProfile(name) {
-  currentProfile = name;
-  const data = gameData.profiles[name];
-  document.getElementById('current-avatar').textContent = data.avatar || '😇';
-  document.getElementById('current-name').textContent = name;
-  document.getElementById('current-stars').textContent = data.stars || 0;
-  showScreen('screen-categories');
-  renderCategories();
+function login(n) {
+  CP = n;
+  if (!GD.profiles[n].cards) GD.profiles[n].cards = [];
+  if (!GD.profiles[n].completedCats) GD.profiles[n].completedCats = [];
+  if (!GD.profiles[n].streak) GD.profiles[n].streak = 0;
+  if (!GD.profiles[n].bestStreak) GD.profiles[n].bestStreak = 0;
+  if (!GD.profiles[n].powers) GD.profiles[n].powers = {fifty:3, skip:1, bible:1};
+  if (!GD.profiles[n].xp) GD.profiles[n].xp = 0;
+  if (!GD.profiles[n].lv) GD.profiles[n].lv = 1;
+  if (!GD.profiles[n].stars) GD.profiles[n].stars = 0;
+  if (!GD.profiles[n].played) GD.profiles[n].played = 0;
+  saveData();
+  showSc('sc-map');
+  renderMap();
 }
-
-function logout() {
-  currentProfile = null;
-  currentQuiz = null;
-  showScreen('screen-profiles');
-  renderProfiles();
-}
-
-function renderAvatarSelect() {
-  const container = document.getElementById('avatar-select');
-  let html = '';
-  for (const av of AVATARS) {
-    html += `<span class="avatar-option" onclick="selectAvatar(this, '${av}')">${av}</span>`;
-  }
-  container.innerHTML = html;
-  // select first by default
-  const first = container.querySelector('.avatar-option');
-  if (first) first.classList.add('selected');
-}
-
-function selectAvatar(el, avatar) {
-  document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
-  el.classList.add('selected');
-}
+function logout() { CP = null; CQ = null; showSc('sc-profiles'); renderProfiles(); }
+function goToMap() { showSc('sc-map'); renderMap(); }
 
 function createProfile() {
-  const name = document.getElementById('new-name').value.trim();
-  if (!name) { alert('Digite um nome!'); return; }
-  if (gameData.profiles[name]) { alert('Esse nome já existe!'); return; }
-  
-  const selected = document.querySelector('.avatar-option.selected');
-  const avatar = selected ? selected.textContent : '😇';
-  
-  gameData.profiles[name] = { avatar, stars: 0, points: 0, played: 0, history: [] };
-  saveGameData();
-  
+  const n = document.getElementById('new-name').value.trim();
+  if (!n) return;
+  if (GD.profiles[n]) { alert('Nome já existe!'); return; }
+  const av = document.querySelector('#avatar-picker span.sel');
+  GD.profiles[n] = {
+    av: av ? av.textContent : '😇', stars: 0, points: 0, xp: 0, lv: 1,
+    played: 0, cards: [], completedCats: [], streak: 0, bestStreak: 0,
+    powers: {fifty: 3, skip: 1, bible: 1}
+  };
+  saveData();
   document.getElementById('new-name').value = '';
-  selectProfile(name);
+  login(n);
 }
 
-// ============ CATEGORIES ============
-function renderCategories() {
-  const container = document.getElementById('categories-list');
-  const icons = {'🌟':'🌍','📖':'📚','👶':'✝️','⛪':'⛪','📜':'📋','💧':'💧'};
+// ============ MAP ============
+function renderMap() {
+  const p = GD.profiles[CP];
+  const lv = p.lv||1;
+  const xp = p.xp||0;
+  const xpNext = lv*100;
+  const pct = Math.min(100, xp/xpNext*100);
+  
+  document.getElementById('map-name').textContent = p.av + ' ' + CP;
+  document.getElementById('xp-fill').style.width = pct+'%';
+  document.getElementById('xp-text').textContent = 'Nível '+lv;
+  document.getElementById('xp-next').textContent = xp+'/'+xpNext+' XP';
+  document.getElementById('stat-stars').textContent = p.stars||0;
+  document.getElementById('stat-cards').textContent = (p.cards||[]).length+'/20';
+  document.getElementById('stat-streak').textContent = p.bestStreak||0;
+  
+  // Map path
+  const mapDiv = document.getElementById('map-path');
+  // Position milestones on a winding path
+  const completed = p.completedCats||[];
   let html = '';
-  for (const cat of CATEGORIES) {
-    const icon = Object.entries(icons).find(([k]) => cat.startsWith(k))?.[1] || '📖';
-    const count = ALL_QUESTIONS.filter(q => q.category === cat).length;
-    html += `
-      <button class="btn btn-outline btn-block" style="text-align:left;margin:4px 0;" onclick="startQuiz('${escapeHTML(cat).replace(/'/g, "\\'")}')">
-        ${icon} ${escapeHTML(cat.replace(/^.\s*/, ''))} <span style="float:right;color:#999;font-size:13px;">${count} perguntas</span>
-      </button>`;
+  const positions = [
+    {x:8,y:170},{x:90,y:160},{x:200,y:140},{x:320,y:120},{x:450,y:100},{x:580,y:80}
+  ];
+  for (let i=0; i<CATS.length; i++) {
+    const pos = positions[i];
+    let cls = 'locked';
+    let icon = '🔒';
+    if (completed.includes(i)) { cls = 'completed'; icon = '✅'; }
+    else if (i === 0 || completed.includes(i-1)) { cls = 'current'; icon = CAT_ICONS[i]; }
+    html += `<div class="map-milestone ${cls}" style="left:${pos.x}px;top:${pos.y}px;" onclick="selectRegion(${i})" title="${CAT_SHORT[i]}">${icon}</div>`;
   }
-  container.innerHTML = html;
+  // Character
+  const lastCompleted = completed.length;
+  const charPos = lastCompleted > 0 ? positions[Math.min(lastCompleted, positions.length-1)] : {x:8,y:180};
+  html += `<div class="map-character" style="left:${charPos.x}px;top:${charPos.y-35}px;">${p.av||'😇'}</div>`;
+  // Path line
+  html += `<svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
+    <path d="M 30 185 Q 150 120, 300 150 Q 450 180, 600 100" stroke="#C4B080" stroke-width="3" fill="none" stroke-dasharray="8,4"/>
+  </svg>`;
+  mapDiv.innerHTML = html;
+  
+  // Region info
+  updateRegionInfo();
+  
+  // Collection bar
+  const bar = document.getElementById('collection-bar');
+  let barHtml = '';
+  for (let i=0; i<SAINTS.length; i++) {
+    const owned = (p.cards||[]).includes(i);
+    barHtml += `<span class="${owned?'':'missing'}" title="${owned?SAINTS[i].n:'???'}">${owned?SAINTS[i].e:'❓'}</span>`;
+  }
+  bar.innerHTML = barHtml;
+}
+
+function updateRegionInfo() {
+  const p = GD.profiles[CP];
+  const completed = p.completedCats||[];
+  let selIdx = completed.length; // next locked region or replay last
+  if (selIdx >= CATS.length) selIdx = CATS.length-1;
+  
+  document.getElementById('region-name').textContent = CAT_ICONS[selIdx] + ' ' + CAT_SHORT[selIdx];
+  
+  const counts = [15,10,25,20,12,18];
+  document.getElementById('region-desc').textContent = counts[selIdx] + ' perguntas · ' + (completed.includes(selIdx)?'✅ Concluída':'🔓 Disponível');
+  
+  const action = document.getElementById('region-action');
+  action.innerHTML = `<button class="btn" style="background:var(--green);color:white;width:100%;font-size:16px;" onclick="startQuiz(${selIdx})">⚔️ Explorar Região</button>`;
+}
+
+function selectRegion(idx) {
+  const p = GD.profiles[CP];
+  const completed = p.completedCats||[];
+  if (idx > 0 && !completed.includes(idx-1)) return; // locked
+  if (completed.length>=CATS.length) idx = CATS.length-1; // all done, replay last
+  document.getElementById('region-name').textContent = CAT_ICONS[idx] + ' ' + CAT_SHORT[idx];
+  const counts = [15,10,25,20,12,18];
+  document.getElementById('region-desc').textContent = counts[idx] + ' perguntas · ' + (completed.includes(idx)?'✅ Concluída':'🔓 Disponível');
+  const action = document.getElementById('region-action');
+  action.innerHTML = `<button class="btn" style="background:var(--green);color:white;width:100%;font-size:16px;" onclick="startQuiz(${idx})">⚔️ Explorar Região</button>`;
 }
 
 // ============ QUIZ ============
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length-1; i>0; i--) {
-    const j = Math.floor(Math.random()*(i+1));
-    [a[i],a[j]] = [a[j],a[i]];
-  }
-  return a;
-}
+function shuffle(a) { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
 
-function startQuiz(category) {
-  let pool;
-  if (category === 'random') {
-    pool = shuffle(ALL_QUESTIONS).slice(0, 15); // 15 random questions
-  } else {
-    pool = shuffle(ALL_QUESTIONS.filter(q => q.category === category));
-  }
+function startQuiz(catIdx) {
+  const cat = CATS[catIdx];
+  const pool = shuffle(Q.filter(q=>q.cat===cat));
   
-  currentQuiz = {
+  CQ = {
     questions: pool,
-    currentIndex: 0,
+    idx: 0,
     correct: 0,
     wrong: 0,
     points: 0,
-    category: category === 'random' ? '🎲 Modo Surpresa' : category,
-    answered: false
+    streak: 0,
+    maxStreak: 0,
+    catIdx: catIdx,
+    cat: cat,
+    answered: false,
+    fiftyUsed: false
   };
   
-  document.getElementById('quiz-badge').innerHTML = 
-    `<span>${gameData.profiles[currentProfile].avatar}</span> <span>${currentProfile}</span>`;
+  showSc('sc-quiz');
+  document.getElementById('streak-disp').textContent = '🔥 0';
+  document.getElementById('streak-disp').classList.remove('on-fire');
+  document.getElementById('quiz-score').textContent = '0 pts';
   
-  renderQuestion();
-  showScreen('screen-quiz');
+  // Power bar
+  const powers = GD.profiles[CP].powers;
+  document.getElementById('power-bar').innerHTML = `
+    <button class="power-btn" id="pw-5050" onclick="use5050()" ${powers.fifty<=0?'disabled':''} title="Elimina 2 erradas">
+      5️⃣0️⃣<span class="badge">${powers.fifty}</span>
+    </button>
+    <button class="power-btn" id="pw-skip" onclick="useSkip()" ${powers.skip<=0?'disabled':''} title="Pula pergunta">
+      ⏭️<span class="badge">${powers.skip}</span>
+    </button>
+    <button class="power-btn" id="pw-bible" onclick="useBible()" ${powers.bible<=0?'disabled':''} title="Mostra referência">
+      📖<span class="badge">${powers.bible}</span>
+    </button>`;
+  
+  renderQ();
 }
 
-function startRandomQuiz() {
-  startQuiz('random');
-}
-
-function renderQuestion() {
-  if (!currentQuiz || currentQuiz.currentIndex >= currentQuiz.questions.length) {
-    finishQuiz();
-    return;
-  }
+function renderQ() {
+  if (!CQ || CQ.idx >= CQ.questions.length) { finishQuiz(); return; }
   
-  const q = currentQuiz.questions[currentQuiz.currentIndex];
-  const total = currentQuiz.questions.length;
-  const idx = currentQuiz.currentIndex + 1;
+  const q = CQ.questions[CQ.idx];
+  const total = CQ.questions.length;
   
-  // Progress
-  document.getElementById('quiz-progress').style.width = ((idx-1)/total*100)+'%';
-  document.getElementById('quiz-category').textContent = currentQuiz.category;
-  document.getElementById('quiz-question').textContent = q.question;
-  document.getElementById('quiz-score-display').textContent = currentQuiz.points + ' pts';
-  document.getElementById('quiz-feedback').innerHTML = '';
+  document.getElementById('quiz-prog').style.width = (CQ.idx/total*100)+'%';
+  document.getElementById('quiz-cat').textContent = CQ.cat.replace(/^.\s*/, '');
+  document.getElementById('quiz-q').textContent = q.q;
+  document.getElementById('quiz-fb').innerHTML = '';
   document.getElementById('btn-next').style.display = 'none';
-  currentQuiz.answered = false;
+  CQ.answered = false;
+  CQ.fiftyUsed = false;
   
-  // Generate options: 1 correct + 3 random wrong from same category or all
-  const correctAnswer = q.answer;
-  const wrongPool = ALL_QUESTIONS
-    .filter(oq => oq.id !== q.id)
-    .map(oq => oq.answer);
-  const uniqueWrong = [...new Set(wrongPool)].filter(a => a !== correctAnswer);
-  const distractors = shuffle(uniqueWrong).slice(0, 3);
-  const options = shuffle([correctAnswer, ...distractors]);
-  
+  // Options
+  const correct = q.a;
+  const wrongs = shuffle([...new Set(Q.filter(oq=>oq.id!==q.id).map(oq=>oq.a))]).filter(a=>a!==correct).slice(0,3);
+  const opts = shuffle([correct, ...wrongs]);
   const letters = ['A','B','C','D'];
   let html = '';
-  for (let i = 0; i < options.length; i++) {
-    html += `<div class="option" onclick="selectAnswer(this, '${escapeHTML(options[i]).replace(/'/g, "\\'")}')">
-      <span class="letter">${letters[i]}</span>${escapeHTML(options[i])}
+  for (let i=0;i<opts.length;i++) {
+    html += `<div class="option" onclick="answer(this,'${esc(opts[i])}')">
+      <span class="letter">${letters[i]}</span>${esc(opts[i])}
     </div>`;
   }
-  document.getElementById('quiz-options').innerHTML = html;
+  document.getElementById('quiz-opts').innerHTML = html;
 }
 
-function selectAnswer(el, chosen) {
-  if (currentQuiz.answered) return;
-  currentQuiz.answered = true;
+function answer(el, chosen) {
+  if (CQ.answered) return;
+  CQ.answered = true;
   
-  const q = currentQuiz.questions[currentQuiz.currentIndex];
-  const correct = q.answer;
+  const q = CQ.questions[CQ.idx];
+  const correct = q.a;
   const isCorrect = chosen === correct;
   
-  // Highlight all options
-  document.querySelectorAll('.option').forEach(opt => {
-    opt.classList.add('disabled');
-    if (opt.textContent.trim().replace(/^[A-D]/, '').trim() === correct) {
-      opt.classList.add('correct');
-    }
+  // Mark options
+  document.querySelectorAll('.option').forEach(o=>{
+    o.classList.add('disabled');
+    const txt = o.textContent.replace(/^[A-D]/,'').trim();
+    if (txt === correct) o.classList.add('correct');
   });
-  
   if (!isCorrect) el.classList.add('wrong');
   
-  // Score
-  const points = isCorrect ? 10 : 0;
-  currentQuiz.points += points;
-  if (isCorrect) currentQuiz.correct++;
-  else currentQuiz.wrong++;
-  
-  document.getElementById('quiz-score-display').textContent = currentQuiz.points + ' pts';
-  document.getElementById('quiz-progress').style.width = (currentQuiz.currentIndex+1)/currentQuiz.questions.length*100+'%';
-  
-  // Feedback
-  const fb = document.getElementById('quiz-feedback');
+  // Streak
   if (isCorrect) {
-    fb.innerHTML = `
-      <div class="feedback correct">
-        ✅ <strong>Correto!</strong> Muito bem! 🎉<br>
-        <span class="ref">${q.reference}</span>
-      </div>`;
-    spawnStars();
+    CQ.streak++;
+    if (CQ.streak > CQ.maxStreak) CQ.maxStreak = CQ.streak;
+    CQ.correct++;
+    const bonus = Math.floor(CQ.streak/3); // bonus point every 3 streak
+    const pts = 10 + bonus*5;
+    CQ.points += pts;
+    sfxCorrect();
+    spawnParticles(el);
+    
+    // Streak display
+    const sd = document.getElementById('streak-disp');
+    sd.textContent = '🔥 ' + CQ.streak;
+    if (CQ.streak >= 3) {
+      sd.classList.add('on-fire');
+      if (CQ.streak % 3 === 0) { comboPopup(CQ.streak); sfxCombo(); }
+    }
+    
+    // Card drop chance (25% per correct answer)
+    const p = GD.profiles[CP];
+    const owned = p.cards||[];
+    const remaining = SAINTS.map((_,i)=>i).filter(i=>!owned.includes(i));
+    if (remaining.length > 0 && Math.random() < 0.25) {
+      const cardIdx = remaining[Math.floor(Math.random()*remaining.length)];
+      setTimeout(() => showCardDrop(cardIdx), 600);
+    }
+    
+    const fb = document.getElementById('quiz-fb');
+    fb.innerHTML = `<div class="feedback-box correct">
+      ✅ <strong>Correto!</strong> +${pts} pontos ${bonus>0?'(Bônus de sequência! 🔥)':''}<br>
+      <span class="ref">${q.ref}</span>
+    </div>`;
   } else {
-    fb.innerHTML = `
-      <div class="feedback wrong">
-        ❌ <strong>Ops!</strong> A resposta correta é:<br>
-        <strong>${escapeHTML(correct)}</strong><br>
-        <span class="ref">${q.reference}</span>
-      </div>`;
+    CQ.streak = 0;
+    CQ.wrong++;
+    sfxWrong();
+    const sd = document.getElementById('streak-disp');
+    sd.textContent = '🔥 0';
+    sd.classList.remove('on-fire');
+    
+    const fb = document.getElementById('quiz-fb');
+    fb.innerHTML = `<div class="feedback-box wrong">
+      ❌ <strong>Não foi dessa vez!</strong> A resposta correta é:<br>
+      <strong>${esc(correct)}</strong><br>
+      <span class="ref">${q.ref}</span>
+    </div>`;
   }
   
-  document.getElementById('btn-next').style.display = 'block';
-  document.getElementById('btn-next').textContent = 
-    currentQuiz.currentIndex + 1 >= currentQuiz.questions.length ? '🏆 Ver Resultado' : 'Próxima ➡️';
+  document.getElementById('quiz-score').textContent = CQ.points + ' pts';
+  document.getElementById('quiz-prog').style.width = ((CQ.idx+1)/CQ.questions.length*100)+'%';
+  
+  const btn = document.getElementById('btn-next');
+  btn.style.display = 'block';
+  btn.textContent = CQ.idx+1 >= CQ.questions.length ? '🏆 Concluir Missão' : 'Próxima ➡️';
+  btn.style.background = CQ.idx+1 >= CQ.questions.length ? 'var(--gold)' : 'var(--blue)';
+  btn.style.color = CQ.idx+1 >= CQ.questions.length ? '#5D4037' : 'white';
 }
 
 function nextQuestion() {
-  currentQuiz.currentIndex++;
-  renderQuestion();
+  CQ.idx++;
+  renderQ();
+}
+
+// ============ POWERS ============
+function use5050() {
+  if (CQ.answered || CQ.fiftyUsed) return;
+  const p = GD.profiles[CP];
+  if (p.powers.fifty <= 0) return;
+  p.powers.fifty--;
+  saveData();
+  updatePowerBtns();
+  
+  const correct = CQ.questions[CQ.idx].a;
+  const opts = document.querySelectorAll('.option');
+  let removed = 0;
+  opts.forEach(o => {
+    const txt = o.textContent.replace(/^[A-D]/,'').trim();
+    if (txt !== correct && removed < 2) {
+      o.style.visibility = 'hidden';
+      o.style.pointerEvents = 'none';
+      removed++;
+    }
+  });
+  CQ.fiftyUsed = true;
+}
+
+function useSkip() {
+  if (CQ.answered) return;
+  const p = GD.profiles[CP];
+  if (p.powers.skip <= 0) return;
+  p.powers.skip--;
+  saveData();
+  updatePowerBtns();
+  CQ.idx++;
+  renderQ();
+}
+
+function useBible() {
+  if (CQ.answered) return;
+  const p = GD.profiles[CP];
+  if (p.powers.bible <= 0) return;
+  p.powers.bible--;
+  saveData();
+  updatePowerBtns();
+  
+  const ref = CQ.questions[CQ.idx].ref;
+  const fb = document.getElementById('quiz-fb');
+  fb.innerHTML = `<div class="feedback-box correct" style="background:#FFF8E1;border-color:var(--gold);">
+    💡 <strong>Dica Bíblica:</strong><br>
+    <span class="ref">${ref}</span>
+  </div>`;
+}
+
+function updatePowerBtns() {
+  const powers = GD.profiles[CP].powers;
+  const b50 = document.getElementById('pw-5050');
+  const bsk = document.getElementById('pw-skip');
+  const bbi = document.getElementById('pw-bible');
+  if (b50) { b50.disabled = powers.fifty <= 0; b50.querySelector('.badge').textContent = powers.fifty; }
+  if (bsk) { bsk.disabled = powers.skip <= 0; bsk.querySelector('.badge').textContent = powers.skip; }
+  if (bbi) { bbi.disabled = powers.bible <= 0; bbi.querySelector('.badge').textContent = powers.bible; }
+}
+
+// ============ FINISH ============
+function finishQuiz() {
+  const p = GD.profiles[CP];
+  const total = CQ.questions.length;
+  const correct = CQ.correct;
+  const pct = Math.round(correct/total*100);
+  
+  // XP
+  const xpEarned = CQ.points;
+  p.xp = (p.xp||0) + xpEarned;
+  p.played = (p.played||0) + 1;
+  
+  // Level up
+  let leveledUp = false;
+  while (p.xp >= p.lv*100) {
+    p.xp -= p.lv*100;
+    p.lv = (p.lv||1) + 1;
+    leveledUp = true;
+    // Reward powers on level up
+    p.powers.fifty = Math.min(5, (p.powers.fifty||0)+1);
+    if (p.lv % 2 === 0) p.powers.skip = Math.min(3, (p.powers.skip||0)+1);
+    if (p.lv % 3 === 0) p.powers.bible = Math.min(3, (p.powers.bible||0)+1);
+  }
+  
+  // Stars
+  let stars = 0;
+  if (pct===100) stars=5;
+  else if (pct>=80) stars=4;
+  else if (pct>=60) stars=3;
+  else if (pct>=40) stars=2;
+  else stars=1;
+  p.stars = (p.stars||0) + stars;
+  
+  // Mark category completed
+  if (pct >= 60) {
+    if (!p.completedCats) p.completedCats = [];
+    if (!p.completedCats.includes(CQ.catIdx)) p.completedCats.push(CQ.catIdx);
+    p.completedCats.sort((a,b)=>a-b);
+  }
+  
+  // Best streak
+  if (CQ.maxStreak > (p.bestStreak||0)) p.bestStreak = CQ.maxStreak;
+  
+  saveData();
+  
+  // Results screen
+  let emoji;
+  if (pct===100) emoji='👑';
+  else if (pct>=80) emoji='🌟';
+  else if (pct>=60) emoji='😊';
+  else if (pct>=40) emoji='💪';
+  else emoji='📚';
+  
+  document.getElementById('res-emoji').textContent = emoji;
+  document.getElementById('res-title').textContent = pct>=60?'Missão Concluída!':'Continue Tentando!';
+  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-wrong').textContent = CQ.wrong;
+  document.getElementById('res-xp').textContent = '+'+xpEarned;
+  
+  // Level up
+  const luDiv = document.getElementById('res-levelup');
+  luDiv.innerHTML = leveledUp ? `<div class="level-up-badge">⬆️ SUBIU DE NÍVEL! Agora é Nível ${p.lv}!</div>` : '';
+  if (leveledUp) sfxLevelUp();
+  
+  // Achievements
+  let ach = '';
+  ach += `<div class="achievement-row"><span>⭐</span><span>+${stars} estrela${stars>1?'s':''}</span></div>`;
+  if (pct===100) ach += `<div class="achievement-row"><span>🏆</span><span>PERFEITO! Gabaritou a região!</span></div>`;
+  if (CQ.maxStreak>=5) ach += `<div class="achievement-row"><span>🔥</span><span>Sequência de ${CQ.maxStreak} acertos!</span></div>`;
+  if (p.played===1) ach += `<div class="achievement-row"><span>🎮</span><span>Primeira missão concluída!</span></div>`;
+  if (p.played===5) ach += `<div class="achievement-row"><span>🔥</span><span>5 missões! Você é dedicado!</span></div>`;
+  if (p.stars>=20) ach += `<div class="achievement-row"><span>💎</span><span>20 estrelas! Incrível!</span></div>`;
+  if ((p.cards||[]).length>=10) ach += `<div class="achievement-row"><span>🃏</span><span>10 cartas na coleção!</span></div>`;
+  if (p.lv>=5) ach += `<div class="achievement-row"><span>🎖️</span><span>Nível 5! Verdadeiro missionário!</span></div>`;
+  
+  document.getElementById('res-achievements').innerHTML = ach;
+  
+  showSc('sc-results');
+  spawnRewardStars();
+}
+
+// ============ CARD DROP ============
+function showCardDrop(cardIdx) {
+  _dropCardIdx = cardIdx;
+  const s = SAINTS[cardIdx];
+  document.getElementById('card-emoji').textContent = s.e;
+  document.getElementById('card-name').textContent = s.n;
+  document.getElementById('card-fact').textContent = s.fact;
+  document.getElementById('card-ref').textContent = '📖 ' + s.ref;
+  document.getElementById('card-overlay').style.display = 'flex';
+  sfxCard();
+}
+
+function closeCardDrop() {
+  const cardIdx = _dropCardIdx;
+  document.getElementById('card-overlay').style.display = 'none';
+  if (cardIdx >= 0) {
+    const p = GD.profiles[CP];
+    if (!p.cards) p.cards = [];
+    if (!p.cards.includes(cardIdx)) {
+      p.cards.push(cardIdx);
+      saveData();
+    }
+    _dropCardIdx = -1;
+  }
+  goToMap();
+}
+
+// ============ GALLERY ============
+function renderGallery() {
+  const p = GD.profiles[CP];
+  const owned = p.cards||[];
+  const grid = document.getElementById('gallery-grid');
+  document.getElementById('gallery-count').textContent = owned.length+'/20 coletadas';
+  let html = '';
+  for (let i=0;i<SAINTS.length;i++) {
+    const isOwned = owned.includes(i);
+    html += `<div class="gallery-card ${isOwned?'owned':''}">
+      <span class="gc-emoji">${isOwned?SAINTS[i].e:'❓'}</span>
+      <span class="gc-name">${isOwned?SAINTS[i].n:'???'}</span>
+      ${isOwned?'<span class="gc-check">✅</span>':''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+// ============ EFFECTS ============
+function spawnParticles(el) {
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  const emojis = ['⭐','✨','💫','🌟'];
+  const container = document.getElementById('reward-overlay');
+  for (let i=0;i<6;i++) {
+    const p = document.createElement('span');
+    p.className = 'particle';
+    p.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    p.style.left = (cx + (Math.random()-0.5)*80) + 'px';
+    p.style.top = cy + 'px';
+    p.style.animationDelay = Math.random()*0.3+'s';
+    container.appendChild(p);
+    setTimeout(()=>p.remove(), 1800);
+  }
+}
+
+function comboPopup(streak) {
+  const d = document.createElement('div');
+  d.className = 'combo-popup';
+  d.textContent = streak+'x COMBO! 🔥';
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(), 900);
+}
+
+function spawnRewardStars() {
+  const container = document.getElementById('reward-overlay');
+  const emojis = ['⭐','🌟','✨','💫','🎉','🎊','🏆','💎'];
+  for (let i=0;i<12;i++) {
+    const s = document.createElement('span');
+    s.className = 'reward-star';
+    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left = (15+Math.random()*70)+'%';
+    s.style.top = (30+Math.random()*40)+'%';
+    s.style.animationDelay = Math.random()*0.6+'s';
+    s.style.fontSize = (24+Math.random()*28)+'px';
+    container.appendChild(s);
+    setTimeout(()=>s.remove(), 1800);
+  }
 }
 
 function confirmQuit() {
-  if (!currentQuiz || currentQuiz.answered || currentQuiz.currentIndex === 0) {
-    if (currentQuiz && currentQuiz.currentIndex > 0 && !currentQuiz.answered) {
-      if (!confirm('Tem certeza que quer sair? Seu progresso será perdido.')) return;
-    }
-    showScreen('screen-categories');
-    currentQuiz = null;
-    return;
+  if (CQ && CQ.answered === false && CQ.idx > 0) {
+    if (!confirm('Sair agora? Seu progresso na região será perdido.')) return;
   }
-  showScreen('screen-categories');
-  currentQuiz = null;
-}
-
-// ============ RESULTS ============
-function finishQuiz() {
-  const total = currentQuiz.questions.length;
-  const correct = currentQuiz.correct;
-  const wrong = currentQuiz.wrong;
-  const points = currentQuiz.points;
-  const maxPoints = total * 10;
-  const pct = Math.round(correct/total*100);
-  
-  // Update profile
-  const profile = gameData.profiles[currentProfile];
-  profile.points = (profile.points || 0) + points;
-  profile.played = (profile.played || 0) + 1;
-  
-  // Star rewards
-  let earnedStars = 0;
-  if (pct === 100) earnedStars = 5;
-  else if (pct >= 80) earnedStars = 4;
-  else if (pct >= 60) earnedStars = 3;
-  else if (pct >= 40) earnedStars = 2;
-  else earnedStars = 1;
-  
-  profile.stars = (profile.stars || 0) + earnedStars;
-  profile.history.push({
-    date: new Date().toISOString(),
-    category: currentQuiz.category,
-    correct, total, points, stars: earnedStars
-  });
-  saveGameData();
-  
-  // Emoji
-  let emoji;
-  if (pct === 100) emoji = '👑';
-  else if (pct >= 80) emoji = '🌟';
-  else if (pct >= 60) emoji = '😊';
-  else if (pct >= 40) emoji = '💪';
-  else emoji = '📚';
-  
-  document.getElementById('results-emoji').textContent = emoji;
-  document.getElementById('results-title').textContent = pct >= 60 ? 'Parabéns!' : 'Continue Tentando!';
-  document.getElementById('results-correct').textContent = correct;
-  document.getElementById('results-wrong').textContent = wrong;
-  document.getElementById('results-points').textContent = '+' + points;
-  
-  // Achievements
-  let achievements = '';
-  achievements += `<div class="achievement"><span class="icon">⭐</span><span class="text">+${earnedStars} estrela${earnedStars>1?'s':''} conquistada${earnedStars>1?'s':''}!</span></div>`;
-  
-  if (pct === 100) {
-    achievements += `<div class="achievement"><span class="icon">🏆</span><span class="text">Gabaritou! Perfeito! Você é um campeão da fé!</span></div>`;
-  }
-  if (correct === total - 1) {
-    achievements += `<div class="achievement"><span class="icon">🎯</span><span class="text">Quase lá! Só faltou uma!</span></div>`;
-  }
-  if (profile.played === 1) {
-    achievements += `<div class="achievement"><span class="icon">🎮</span><span class="text">Primeira partida concluída!</span></div>`;
-  } else if (profile.played === 5) {
-    achievements += `<div class="achievement"><span class="icon">🔥</span><span class="text">5 partidas jogadas! Você é dedicado!</span></div>`;
-  }
-  if (profile.stars >= 20) {
-    achievements += `<div class="achievement"><span class="icon">💎</span><span class="text">20 estrelas! Incrível!</span></div>`;
-  }
-  
-  document.getElementById('results-achievements').innerHTML = achievements;
-  
-  showScreen('screen-results');
-  spawnStars();
-}
-
-// ============ STARS ANIMATION ============
-function spawnStars() {
-  const container = document.getElementById('stars-container');
-  const emojis = ['⭐','🌟','✨','💫','🎉','🎊'];
-  for (let i = 0; i < 8; i++) {
-    const star = document.createElement('span');
-    star.className = 'star';
-    star.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-    star.style.left = Math.random()*90 + '%';
-    star.style.animationDelay = Math.random()*0.5 + 's';
-    star.style.fontSize = (24 + Math.random()*32) + 'px';
-    container.appendChild(star);
-    setTimeout(() => star.remove(), 2000);
-  }
+  CQ = null;
+  showSc('sc-map');
+  renderMap();
 }
 
 // ============ UTILS ============
-function escapeHTML(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
+function esc(s) { const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
 
 // ============ INIT ============
 renderProfiles();
-renderAvatarSelect();
 
-// Load new profile screen on Enter key
-document.getElementById('new-name').addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') createProfile();
+// Avatar picker
+const apDiv = document.getElementById('avatar-picker');
+AVATARS.forEach((a,i)=>{
+  const s = document.createElement('span');
+  s.textContent = a;
+  if (i===0) s.classList.add('sel');
+  s.onclick = function(){
+    document.querySelectorAll('#avatar-picker span').forEach(x=>x.classList.remove('sel'));
+    this.classList.add('sel');
+  };
+  apDiv.appendChild(s);
 });
-</script>
 
+// Enter key
+document.getElementById('new-name').addEventListener('keypress',function(e){
+  if (e.key==='Enter') createProfile();
+});
+
+// Gallery rendering
+const origShowSc = showSc;
+showSc = function(id) {
+  origShowSc(id);
+  if (id === 'sc-gallery') renderGallery();
+};
+</script>
 </body>
 </html>
