@@ -128,6 +128,28 @@ input[type=text]:focus{border-color:var(--blue)}
 .manual-section p{font-size:13px;color:#555;line-height:1.5}
 .sub-theme-tag{display:inline-block;background:#E8F5E9;color:#2E7D32;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:8px}
 .region-select-hint{font-size:11px;color:#AAA;text-align:center;margin-top:4px;font-style:italic}
+
+/* Ranking */
+.podium{display:flex;justify-content:center;align-items:flex-end;gap:8px;margin:16px 0;min-height:140px}
+.podium-spot{text-align:center;border-radius:12px 12px 0 0;padding:12px 8px;min-width:90px;transition:all 0.3s}
+.podium-spot.gold{background:linear-gradient(180deg,#FFD700,#FFA000);height:130px;order:2;z-index:3}
+.podium-spot.silver{background:linear-gradient(180deg,#E0E0E0,#9E9E9E);height:100px;order:1;z-index:2}
+.podium-spot.bronze{background:linear-gradient(180deg,#FFCC80,#BF6A02);height:85px;order:3;z-index:1}
+.podium-spot .pos{font-size:28px;display:block}
+.podium-spot .p-name{font-weight:700;font-size:14px;color:#333;word-break:break-word}
+.podium-spot .p-pts{font-size:11px;color:#555}
+.rank-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;margin:4px 0;background:#F8F8F8}
+.rank-row .r-pos{font-weight:700;font-size:16px;width:30px;text-align:center}
+.rank-row .r-av{font-size:24px}
+.rank-row .r-name{flex:1;font-weight:600;font-size:14px}
+.rank-row .r-pts{font-size:13px;color:#888;text-align:right}
+
+/* Reflection */
+.reflect-q{margin:12px 0;padding:12px;background:#FFFDE7;border-radius:12px;border:1px solid #F0E6C0}
+.reflect-q .rq-label{font-weight:700;font-size:14px;color:#5D4037;margin-bottom:6px}
+.reflect-q textarea{width:100%;min-height:70px;padding:10px;border:2px solid #E0E0E0;border-radius:10px;font-size:14px;font-family:inherit;resize:vertical;outline:none}
+.reflect-q textarea:focus{border-color:var(--gold)}
+
 @media (max-width:480px){.container{padding:12px;border-radius:14px}h1{font-size:18px}.quiz-question{font-size:16px;padding:10px}.option{font-size:13px;padding:10px 12px}}
 </style>
 </head>
@@ -140,6 +162,21 @@ input[type=text]:focus{border-color:var(--blue)}
     <h2>Aventura Catequética</h2>
     <div class="profiles-wrap" id="profiles-wrap"></div>
     <button class="btn" style="background:var(--blue);color:white;width:100%;" onclick="showSc('sc-new')">➕ Novo Aventureiro</button>
+    <button class="btn" style="background:var(--gold);color:#5D4037;width:100%;margin-top:4px;" onclick="showSc('sc-ranking')">🏆 Ranking dos Aventureiros</button>
+  </div>
+  <!-- RANKING -->
+  <div class="screen" id="sc-ranking">
+    <div class="toolbar"><button class="back-btn" onclick="showSc('sc-profiles')">←</button><span style="font-weight:600;">🏆 Ranking</span><span></span></div>
+    <div id="ranking-list"></div>
+    <button class="btn btn-block" style="background:var(--blue);color:white;margin-top:8px;" onclick="showSc('sc-profiles')">↩️ Voltar</button>
+  </div>
+  <!-- DISCURSIVE REFLECTION -->
+  <div class="screen" id="sc-reflect">
+    <h1>✍️ Momento de Reflexão</h1>
+    <h2 id="reflect-cat">O que você aprendeu?</h2>
+    <div id="reflect-questions"></div>
+    <button class="btn btn-block" style="background:var(--green);color:white;margin-top:12px;" onclick="submitReflection()">✅ Enviar Respostas (+15 pontos!)</button>
+    <button class="btn btn-block" style="background:white;border:2px solid #CCC;color:#888;" onclick="skipReflection()">Pular ➡️</button>
   </div>
   <!-- NEW PROFILE -->
   <div class="screen" id="sc-new">
@@ -659,10 +696,82 @@ function updatePB(){
   if(bbi){bbi.disabled=p.bible<=0;bbi.querySelector('.badge').textContent=p.bible;}
 }
 
-// ============ FINISH ============
-function finishQuiz(){
+// ============ REFLECTION QUESTIONS ============
+const REFLECT_QS = {
+  "Criação": [
+    "O que você aprendeu sobre como Deus criou o mundo?",
+    "Qual história dessa região você mais gostou? Por quê?",
+    "Como você pode cuidar melhor da criação de Deus no seu dia a dia?"
+  ],
+  "Bíblia": [
+    "Por que a Bíblia é importante para nós?",
+    "Qual livro da Bíblia você gostaria de ler? Por quê?",
+    "O que você aprendeu sobre os Evangelhos?"
+  ],
+  "Jesus": [
+    "O que mais te impressionou na vida de Jesus?",
+    "Qual milagre de Jesus você gostaria de ver? Por quê?",
+    "Como você pode imitar Jesus no seu dia a dia?"
+  ],
+  "Igreja": [
+    "O que você aprendeu sobre a Igreja Católica?",
+    "Como você pode ajudar sua paróquia ou comunidade?",
+    "Qual oração você mais gosta de rezar? Por quê?"
+  ],
+  "Mandamentos": [
+    "Qual mandamento você acha mais importante? Por quê?",
+    "Como você pode honrar melhor seu pai e sua mãe?",
+    "O que significa 'amar ao próximo como a si mesmo' para você?"
+  ],
+  "Sacramentos": [
+    "Qual sacramento você já recebeu? Como foi?",
+    "Por que a Eucaristia é tão importante?",
+    "Como você pode se preparar melhor para a Confissão?"
+  ]
+};
+
+function startReflection(){
+  const shortCat=CAT_SHORT[CQ.catIdx]||'Geral';
+  const qs=REFLECT_QS[shortCat]||["O que você aprendeu nesta região?","Qual foi a parte mais interessante?","Como isso muda sua vida?"];
+  document.getElementById('reflect-cat').textContent='Região: '+shortCat;
+  let html='';
+  for(let i=0;i<qs.length;i++){
+    html+=`<div class="reflect-q">
+      <div class="rq-label">${i+1}. ${qs[i]}</div>
+      <textarea id="ref-q${i}" placeholder="Escreva sua resposta aqui..."></textarea>
+    </div>`;
+  }
+  document.getElementById('reflect-questions').innerHTML=html;
+  showSc('sc-reflect');
+}
+
+function submitReflection(){
+  const p=GD.profiles[CP];
+  const answers=[];
+  let bonus=0;
+  for(let i=0;i<3;i++){
+    const ta=document.getElementById('ref-q'+i);
+    if(ta&&ta.value.trim().length>0){answers.push(ta.value.trim());bonus+=5;}
+  }
+  // Add bonus points
+  if(bonus>0){
+    p.xp=(p.xp||0)+bonus;
+    CQ.points+=bonus;
+    saveData();
+  }
+  // Save reflection to history
+  if(!p.reflections)p.reflections=[];
+  p.reflections.push({date:new Date().toISOString(),cat:CQ.cat,answers});
+  saveData();
+  showResults();
+}
+
+function skipReflection(){
+  showResults();
+}
+
+function showResults(){
   const p=GD.profiles[CP],total=CQ.questions.length,correct=CQ.correct,pct=Math.round(correct/total*100);
-  p.savedQuiz=null; // Clear saved quiz since we finished
   const xpEarned=CQ.points;p.xp=(p.xp||0)+xpEarned;p.played=(p.played||0)+1;
   let leveledUp=false;
   while(p.xp>=p.lv*100){p.xp-=p.lv*100;p.lv=(p.lv||1)+1;leveledUp=true;p.powers.fifty=Math.min(5,(p.powers.fifty||0)+1);if(p.lv%2===0)p.powers.skip=Math.min(3,(p.powers.skip||0)+1);if(p.lv%3===0)p.powers.bible=Math.min(3,(p.powers.bible||0)+1);}
@@ -670,6 +779,7 @@ function finishQuiz(){
   p.stars=(p.stars||0)+stars;
   if(pct>=60&&!p.completedCats.includes(CQ.catIdx)){p.completedCats.push(CQ.catIdx);p.completedCats.sort((a,b)=>a-b);}
   if(CQ.maxStreak>(p.bestStreak||0))p.bestStreak=CQ.maxStreak;
+  p.savedQuiz=null;
   saveData();
   let emoji;if(pct===100)emoji='👑';else if(pct>=80)emoji='🌟';else if(pct>=60)emoji='😊';else if(pct>=40)emoji='💪';else emoji='📚';
   document.getElementById('res-emoji').textContent=emoji;
@@ -682,10 +792,66 @@ function finishQuiz(){
   let ach=`<div class="achievement-row"><span>⭐</span><span>+${stars} estrela${stars>1?'s':''}</span></div>`;
   if(pct===100)ach+=`<div class="achievement-row"><span>🏆</span><span>PERFEITO! Gabaritou!</span></div>`;
   if(CQ.maxStreak>=5)ach+=`<div class="achievement-row"><span>🔥</span><span>Sequência de ${CQ.maxStreak} acertos!</span></div>`;
-  if(p.played===1)ach+=`<div class="achievement-row"><span>🎮</span><span>Primeira missão!</span></div>`;
   if((p.cards||[]).length>=10)ach+=`<div class="achievement-row"><span>🃏</span><span>10 cartas na coleção!</span></div>`;
   document.getElementById('res-achievements').innerHTML=ach;
   showSc('sc-results');spawnRewardStars();
+}
+
+// ============ RANKING ============
+function renderRanking(){
+  const profiles=Object.entries(GD.profiles).map(([n,d])=>({name:n,avatar:d.av||'😇',stars:d.stars||0,points:d.points||0||0,level:d.lv||1,cards:(d.cards||[]).length}));
+  profiles.sort((a,b)=>b.stars-a.stars||b.points-a.points||b.level-a.level);
+  
+  let html='';
+  // Podium for top 3
+  if(profiles.length>0){
+    const medals=['🥇','🥈','🥉'];
+    const classes=['gold','silver','bronze'];
+    const top3=profiles.slice(0,3);
+    // Display podium: silver(2nd) | gold(1st) | bronze(3rd)
+    const order=[1,0,2]; // silver, gold, bronze
+    html+='<div class="podium">';
+    for(const idx of order){
+      if(idx>=top3.length)continue;
+      const p=top3[idx];
+      html+=`<div class="podium-spot ${classes[idx]}">
+        <span class="pos">${medals[idx]}</span>
+        <span style="font-size:32px;display:block;">${p.avatar}</span>
+        <div class="p-name">${esc(p.name)}</div>
+        <div class="p-pts">⭐${p.stars} · Nível ${p.level}</div>
+      </div>`;
+    }
+    html+='</div>';
+  }
+  
+  // Full list
+  for(let i=0;i<profiles.length;i++){
+    const p=profiles[i];
+    const posEmoji=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+    html+=`<div class="rank-row" style="${i<3?'background:#FFFDE7;border:1px solid #FFD700;':''}">
+      <span class="r-pos">${posEmoji}</span>
+      <span class="r-av">${p.avatar}</span>
+      <span class="r-name">${esc(p.name)}</span>
+      <span class="r-pts">Nv.${p.level} · ⭐${p.stars} · 🃏${p.cards}</span>
+    </div>`;
+  }
+  
+  if(profiles.length===0)html='<p style="text-align:center;color:#999;">Nenhum aventureiro ainda!</p>';
+  document.getElementById('ranking-list').innerHTML=html;
+}
+
+// Override showSc to render ranking when entering ranking screen
+const origShowSc2=showSc;
+showSc=function(id){
+  origShowSc2(id);
+  if(id==='sc-ranking')renderRanking();
+  if(id==='sc-gallery')renderGallery();
+};
+
+// ============ FINISH (modified to go to reflection) ============
+function finishQuiz(){
+  // Instead of showing results directly, go to reflection first
+  startReflection();
 }
 
 // ============ CARD DROP & GALLERY ============
@@ -839,9 +1005,6 @@ renderProfiles();
 const apDiv=document.getElementById('avatar-picker');
 AVATARS.forEach((a,i)=>{const s=document.createElement('span');s.textContent=a;if(i===0)s.classList.add('sel');s.onclick=function(){document.querySelectorAll('#avatar-picker span').forEach(x=>x.classList.remove('sel'));this.classList.add('sel');};apDiv.appendChild(s);});
 document.getElementById('new-name').addEventListener('keypress',function(e){if(e.key==='Enter')createProfile();});
-
-const origShowSc=showSc;
-showSc=function(id){origShowSc(id);if(id==='sc-gallery')renderGallery();};
 </script>
 </body>
 </html>
