@@ -611,9 +611,10 @@ function answer(el,chosen){
     CQ.points+=pts;sfxCorrect();spawnParticles(el);
     const sd=document.getElementById('streak-disp');sd.textContent='🔥 '+CQ.streak;
     if(CQ.streak>=3){sd.classList.add('on-fire');if(CQ.streak%3===0){comboPopup(CQ.streak);sfxCombo();}}
-    // Card drop
+    // Card drop: chance scales with progress (5% early → 35% late)
+    const dropChance=0.05+(CQ.idx/CQ.questions.length)*0.30;
     const cp=GD.profiles[CP],owned=cp.cards||[],remaining=SAINTS.map((_,i)=>i).filter(i=>!owned.includes(i));
-    if(remaining.length>0&&Math.random()<0.25){const ci=remaining[Math.floor(Math.random()*remaining.length)];setTimeout(()=>showCardDrop(ci),600);}
+    if(remaining.length>0&&Math.random()<dropChance){const ci=remaining[Math.floor(Math.random()*remaining.length)];setTimeout(()=>showCardDrop(ci),600);}
     document.getElementById('quiz-fb').innerHTML=`<div class="feedback-box correct">✅ <strong>Correto!</strong> +${pts} pts ${bonus>0?'(Bônus 🔥)':''}<br><span class="ref">${q.ref}</span></div>`;
     const cheers=['Maravilha! 🎉','Muito bem! 🌟','Você sabe mesmo! ✨','Continue assim! 💪','Acertou em cheio! 🎯'];
     if(CQ.streak>=5)companionSay('😇',cheers[Math.floor(Math.random()*cheers.length)],2000);
@@ -632,6 +633,10 @@ function answer(el,chosen){
   btn.textContent=CQ.idx+1>=CQ.questions.length?'🏆 Concluir Missão':'Próxima ➡️';
   btn.style.background=CQ.idx+1>=CQ.questions.length?'var(--gold)':'var(--blue)';
   btn.style.color=CQ.idx+1>=CQ.questions.length?'#5D4037':'white';
+  // Auto-save progress after each answer
+  const p=GD.profiles[CP];
+  p.savedQuiz={cat:CQ.cat, catIdx:CQ.catIdx, idx:CQ.idx, correct:CQ.correct, wrong:CQ.wrong, points:CQ.points, streak:CQ.streak, maxStreak:CQ.maxStreak, qIds:CQ.questions.map(q=>q.id), total:CQ.questions.length};
+  saveData();
 }
 
 function nextQuestion(){CQ.idx++;renderQ();}
@@ -657,6 +662,7 @@ function updatePB(){
 // ============ FINISH ============
 function finishQuiz(){
   const p=GD.profiles[CP],total=CQ.questions.length,correct=CQ.correct,pct=Math.round(correct/total*100);
+  p.savedQuiz=null; // Clear saved quiz since we finished
   const xpEarned=CQ.points;p.xp=(p.xp||0)+xpEarned;p.played=(p.played||0)+1;
   let leveledUp=false;
   while(p.xp>=p.lv*100){p.xp-=p.lv*100;p.lv=(p.lv||1)+1;leveledUp=true;p.powers.fifty=Math.min(5,(p.powers.fifty||0)+1);if(p.lv%2===0)p.powers.skip=Math.min(3,(p.powers.skip||0)+1);if(p.lv%3===0)p.powers.bible=Math.min(3,(p.powers.bible||0)+1);}
@@ -752,24 +758,51 @@ function companionSay(emoji,msg,dur=2500){
   setTimeout(()=>{document.getElementById('companion-speech').style.display='none';c.style.opacity='0';c.style.transform='scale(0)';},dur);
 }
 
-// SCENE CARDS between questions
-const SCENES = [
-  {title:'🌄 Monte Sinai',desc:'Onde Deus entregou os 10 Mandamentos a Moisés. O monte tremia e fumegava!'},
-  {title:'🏛️ Templo de Jerusalém',desc:'Construído pelo Rei Salomão. O lugar mais sagrado de Israel.'},
-  {title:'🌊 Mar da Galileia',desc:'Onde Jesus acalmou a tempestade e caminhou sobre as águas.'},
-  {title:'🕊️ Rio Jordão',desc:'Onde João Batista batizou Jesus e o Espírito Santo desceu como pomba.'},
-  {title:'⛪ Cenáculo',desc:'O lugar da Última Ceia e onde o Espírito Santo desceu em Pentecostes.'},
-  {title:'🕯️ Gruta de Belém',desc:'O humilde local onde nasceu o Salvador do mundo.'},
-  {title:'🗿 Monte das Oliveiras',desc:'Onde Jesus rezou antes da Paixão e de onde subiu ao Céu.'},
-  {title:'🐑 Campos de Belém',desc:'Onde os pastores ouviram o anúncio dos anjos: \"Glória a Deus nas alturas!\"'},
-  {title:'🌿 Jardim do Éden',desc:'O paraíso criado por Deus para Adão e Eva, cheio de beleza e paz.'},
-  {title:'🚢 Arca de Noé',desc:'A grande embarcação que salvou Noé, sua família e os animais do Dilúvio.'},
-  {title:'🏜️ Deserto do Sinai',desc:'Onde o povo de Israel caminhou por 40 anos, guiado por Deus.'},
-  {title:'✨ Monte Tabor',desc:'Onde Jesus se transfigurou diante de Pedro, Tiago e João.'},
-];
+// SCENE CARDS - mapped to categories
+const SCENES_BY_CAT = {
+  "Criação": [
+    {title:'🌿 Jardim do Éden',desc:'O paraíso criado por Deus para Adão e Eva, cheio de beleza e paz.'},
+    {title:'🚢 Arca de Noé',desc:'A grande embarcação que salvou Noé, sua família e os animais do Dilúvio.'},
+    {title:'🌄 Monte Sinai',desc:'Onde Deus entregou os 10 Mandamentos a Moisés. O monte tremia e fumegava!'},
+    {title:'🏜️ Deserto do Sinai',desc:'Onde o povo de Israel caminhou por 40 anos, guiado por Deus.'},
+    {title:'🌟 Estrela de Belém',desc:'A estrela que guiou os Reis Magos até o Menino Jesus.'},
+  ],
+  "Bíblia": [
+    {title:'📜 Pergaminhos Sagrados',desc:'A Bíblia foi escrita ao longo de mais de 1000 anos, por dezenas de autores inspirados por Deus.'},
+    {title:'🏛️ Templo de Jerusalém',desc:'Construído pelo Rei Salomão. O lugar mais sagrado de Israel, onde se guardavam as Escrituras.'},
+  ],
+  "Jesus": [
+    {title:'🕯️ Gruta de Belém',desc:'O humilde local onde nasceu o Salvador do mundo.'},
+    {title:'🐑 Campos de Belém',desc:'Onde os pastores ouviram o anúncio dos anjos: "Glória a Deus nas alturas!"'},
+    {title:'🕊️ Rio Jordão',desc:'Onde João Batista batizou Jesus e o Espírito Santo desceu como pomba.'},
+    {title:'🌊 Mar da Galileia',desc:'Onde Jesus acalmou a tempestade e caminhou sobre as águas.'},
+    {title:'🗿 Monte das Oliveiras',desc:'Onde Jesus rezou antes da Paixão e de onde subiu ao Céu.'},
+    {title:'✨ Monte Tabor',desc:'Onde Jesus se transfigurou diante de Pedro, Tiago e João.'},
+  ],
+  "Igreja": [
+    {title:'⛪ Cenáculo',desc:'O local da Última Ceia e onde o Espírito Santo desceu em Pentecostes.'},
+    {title:'🇻🇦 Basílica de São Pedro',desc:'A maior igreja do mundo, construída sobre o túmulo de São Pedro, no Vaticano.'},
+    {title:'🙏 Catacumbas',desc:'Onde os primeiros cristãos se reuniam secretamente para rezar durante as perseguições.'},
+  ],
+  "Mandamentos": [
+    {title:'🌄 Monte Sinai',desc:'Onde Moisés recebeu as Tábuas da Lei com os 10 Mandamentos escritos por Deus.'},
+    {title:'🏛️ Templo de Jerusalém',desc:'O lugar onde se guardavam as Tábuas da Lei na Arca da Aliança.'},
+  ],
+  "Sacramentos": [
+    {title:'💒 Igreja',desc:'O lugar onde recebemos a maioria dos sacramentos: Batismo, Eucaristia, Crisma, Matrimônio...'},
+    {title:'🕯️ Altar',desc:'O centro da Missa, onde o pão e o vinho se transformam no Corpo e Sangue de Cristo.'},
+    {title:'💧 Pia Batismal',desc:'Onde recebemos o primeiro sacramento e nos tornamos filhos de Deus.'},
+  ]
+};
+const SCENES_DEFAULT = [{title:'🌟 Terra Santa',desc:'A terra onde Jesus viveu, cheia de lugares sagrados e histórias de fé.'}];
 
 function showScene(){
-  const sc=SCENES[Math.floor(Math.random()*SCENES.length)];
+  // Pick scene matching the question's category
+  const q=CQ.questions[CQ.idx];
+  const shortCat=CAT_SHORT[CATS.indexOf(q.cat)]||'';
+  let pool=SCENES_BY_CAT[shortCat]||SCENES_DEFAULT;
+  if(!pool||pool.length===0)pool=SCENES_DEFAULT;
+  const sc=pool[Math.floor(Math.random()*pool.length)];
   document.getElementById('quiz-fb').innerHTML=`
     <div class="feedback-box correct" style="text-align:center;background:#FFFDE7;border-color:#FFD700;">
       <div style="font-size:48px;margin-bottom:8px;">${sc.title.split(' ')[0]}</div>
