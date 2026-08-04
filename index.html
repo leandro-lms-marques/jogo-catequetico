@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🌟 Jornada da Fé - Aventura Catequética</title>
 <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.17.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.17.0/firebase-database-compat.js"></script>
 <style>
 :root{--gold:#FFD700;--blue:#4A90D9;--green:#4CAF50;--red:#E74C3C;--purple:#9B59B6;--orange:#FF9800;--bg:#FFFDF5;--card-bg:#FFFFFF;--sky1:#87CEEB;--sky2:#E8F4FD}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -492,15 +492,14 @@ let GD, CP=null, CQ=null, audioCtx=null, _dropCardIdx=-1;
 let firebaseRef=null, familyCode=null, useFirebase=false;
 
 // ============ FIREBASE CONFIG ============
-// ⚠️ SUBSTITUA pelos valores do seu projeto Firebase:
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSy...SEU_API_KEY",
-  authDomain: "SEU_PROJETO.firebaseapp.com",
-  databaseURL: "https://SEU_PROJETO-default-rtdb.firebaseio.com",
-  projectId: "SEU_PROJETO",
-  storageBucket: "SEU_PROJETO.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:xxxxxxxxxxxxxx"
+  apiKey: "AIzaSyDH3U1Tml4ka9s0mvyWO2ZRIb0BJR20-1c",
+  authDomain: "jornada-da-fe-marques.firebaseapp.com",
+  databaseURL: "https://jornada-da-fe-marques-default-rtdb.firebaseio.com",
+  projectId: "jornada-da-fe-marques",
+  storageBucket: "jornada-da-fe-marques.firebasestorage.app",
+  messagingSenderId: "94993822132",
+  appId: "1:94993822132:web:97f90d3371f5d1a43882e1"
 };
 
 function initFirebase(){
