@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🌟 Jornada da Fé - Aventura Catequética</title>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
 :root{--gold:#FFD700;--blue:#4A90D9;--green:#4CAF50;--red:#E74C3C;--purple:#9B59B6;--orange:#FF9800;--bg:#FFFDF5;--card-bg:#FFFFFF;--sky1:#87CEEB;--sky2:#E8F4FD}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -156,8 +159,21 @@ input[type=text]:focus{border-color:var(--blue)}
 <body>
 
 <div class="container" id="app">
+  <!-- FAMILY CODE SCREEN -->
+  <div class="screen active" id="sc-family">
+    <h1>🌟 Jornada da Fé</h1>
+    <h2>Sincronizar entre dispositivos</h2>
+    <p style="text-align:center;font-size:13px;color:#666;margin:8px 0;">Crie um código para sua família. Todos os dispositivos com este código compartilharão o mesmo ranking, cartas e progresso!</p>
+    <input type="text" id="family-code" placeholder="Ex: familia2024" maxlength="20" autocomplete="off" style="text-align:center;font-size:18px;letter-spacing:2px;">
+    <div style="display:flex;gap:6px;margin:8px 0;">
+      <button class="btn btn-block" style="background:var(--green);color:white;flex:2;" onclick="connectFamily()">🚀 Conectar e Sincronizar</button>
+    </div>
+    <button class="btn btn-block" style="background:#EEE;color:#888;" onclick="skipSync()">📱 Usar só neste dispositivo (sem sync)</button>
+    <p id="family-status" style="text-align:center;font-size:11px;color:#AAA;margin-top:8px;"></p>
+    <p style="text-align:center;color:#CCC;font-size:9px;margin-top:12px;">⚠️ Requer projeto Firebase configurado. Veja instruções no repositório.</p>
+  </div>
   <!-- PROFILE SELECTION -->
-  <div class="screen active" id="sc-profiles">
+  <div class="screen" id="sc-profiles">
     <h1>🌟 Jornada da Fé</h1>
     <h2>Aventura Catequética</h2>
     <div class="profiles-wrap" id="profiles-wrap"></div>
@@ -469,12 +485,98 @@ const CATS = [...new Set(Q.map(q=>q.cat))];
 const CAT_ICONS = ['🌍','📚','✝️','⛪','📋','💧'];
 const CAT_SHORT = ['Criação','Bíblia','Jesus','Igreja','Mandamentos','Sacramentos'];
 const AVATARS = ['😇','🙏','🕊️','✝️','🌟','💒','📿','🕯️','👼','🐑','🌿','💜','🔥','⛪','🎚️','🧒','👦','👧','🪽','🛡️','⚜️','💒','🕊️','🌻','🎵','🪷'];
-const STORAGE = 'catquiz_v3'; // new version to avoid conflicts
+const STORAGE = 'catquiz_v3';
+const FAMILY_KEY = 'jdf_family_code';
 
 let GD, CP=null, CQ=null, audioCtx=null, _dropCardIdx=-1;
+let firebaseRef=null, familyCode=null, useFirebase=false;
 
-function loadData(){try{return JSON.parse(localStorage.getItem(STORAGE))||{profiles:{}};}catch(e){return{profiles:{}};}}
-function saveData(){localStorage.setItem(STORAGE,JSON.stringify(GD));}
+// ============ FIREBASE CONFIG ============
+// ⚠️ SUBSTITUA pelos valores do seu projeto Firebase:
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSy...SEU_API_KEY",
+  authDomain: "SEU_PROJETO.firebaseapp.com",
+  databaseURL: "https://SEU_PROJETO-default-rtdb.firebaseio.com",
+  projectId: "SEU_PROJETO",
+  storageBucket: "SEU_PROJETO.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "1:000000000000:web:xxxxxxxxxxxxxx"
+};
+
+function initFirebase(){
+  try{
+    if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+    return true;
+  }catch(e){console.log('Firebase não configurado, modo local.');return false;}
+}
+
+function connectFamily(){
+  const code=document.getElementById('family-code').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(!code||code.length<4){document.getElementById('family-status').textContent='Código muito curto! Mínimo 4 caracteres.';return;}
+  document.getElementById('family-status').textContent='Conectando...';
+  
+  if(!initFirebase()){document.getElementById('family-status').textContent='Firebase não configurado. Configure primeiro.';return;}
+  
+  familyCode=code;
+  firebaseRef=firebase.database().ref('families/'+familyCode);
+  useFirebase=true;
+  localStorage.setItem(FAMILY_KEY,code);
+  
+  // Load from Firebase
+  firebaseRef.child('profiles').once('value').then(snap=>{
+    const remote=snap.val()||{};
+    // Merge: remote overwrites local if remote is newer or local has same
+    const local=JSON.parse(localStorage.getItem(STORAGE)||'{"profiles":{}}');
+    GD={profiles:{...local.profiles,...remote}};
+    localStorage.setItem(STORAGE,JSON.stringify(GD));
+    setupSync();
+    document.getElementById('family-status').textContent='✅ Conectado! Código: '+familyCode;
+    setTimeout(()=>showSc('sc-profiles'),800);
+  }).catch(e=>{
+    document.getElementById('family-status').textContent='Erro: '+e.message;
+  });
+}
+
+function setupSync(){
+  if(!firebaseRef||!useFirebase)return;
+  // Listen for remote changes
+  firebaseRef.child('profiles').on('value',snap=>{
+    const remote=snap.val()||{};
+    const local=JSON.parse(localStorage.getItem(STORAGE)||'{"profiles":{}}');
+    // Merge: newest wins
+    GD={profiles:{...local.profiles,...remote}};
+    localStorage.setItem(STORAGE,JSON.stringify(GD));
+    if(document.getElementById('sc-profiles').classList.contains('active'))renderProfiles();
+    if(document.getElementById('sc-ranking').classList.contains('active'))renderRanking();
+    if(CP&&document.getElementById('sc-map').classList.contains('active'))renderMap();
+  });
+}
+
+function skipSync(){
+  useFirebase=false;firebaseRef=null;familyCode=null;
+  localStorage.removeItem(FAMILY_KEY);
+  showSc('sc-profiles');
+}
+
+function saveData(){
+  localStorage.setItem(STORAGE,JSON.stringify(GD));
+  // Sync to Firebase
+  if(useFirebase&&firebaseRef){
+    firebaseRef.child('profiles').set(GD.profiles).catch(e=>console.log('Firebase sync error:',e));
+  }
+}
+
+function loadData(){
+  // Try auto-connect if family code saved
+  const savedCode=localStorage.getItem(FAMILY_KEY);
+  if(savedCode&&initFirebase()){
+    familyCode=savedCode;
+    firebaseRef=firebase.database().ref('families/'+familyCode);
+    useFirebase=true;
+    setupSync();
+  }
+  try{return JSON.parse(localStorage.getItem(STORAGE))||{profiles:{}};}catch(e){return{profiles:{}};}
+}
 function beep(f,d,t='sine',v=0.15){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d);}
 function sfxCorrect(){beep(523,0.1);setTimeout(()=>beep(659,0.1),100);setTimeout(()=>beep(784,0.15),200);}
 function sfxWrong(){beep(200,0.2,'triangle');}
@@ -1045,11 +1147,42 @@ function resumeQuiz(){
 }
 
 // ============ INIT ============
-renderProfiles();
+GD=loadData();
+// Auto-skip family screen if already connected or if using localStorage
+if(localStorage.getItem(FAMILY_KEY)){
+  if(initFirebase()){
+    familyCode=localStorage.getItem(FAMILY_KEY);
+    firebaseRef=firebase.database().ref('families/'+familyCode);
+    useFirebase=true;
+    setupSync();
+  }
+  // Load remote data
+  if(firebaseRef){
+    firebaseRef.child('profiles').once('value').then(snap=>{
+      const remote=snap.val()||{};
+      GD={profiles:{...GD.profiles,...remote}};
+      saveData();
+      showSc('sc-profiles');
+      renderProfiles();
+    }).catch(()=>{showSc('sc-profiles');renderProfiles();});
+  }else{showSc('sc-profiles');renderProfiles();}
+} else {
+  // No family code yet - show family screen
+  showSc('sc-family');
+  renderProfiles(); // pre-render for when we switch
+}
 const apDiv=document.getElementById('avatar-picker');
 AVATARS.forEach((a,i)=>{const s=document.createElement('span');s.textContent=a;if(i===0)s.classList.add('sel');s.onclick=function(){document.querySelectorAll('#avatar-picker span').forEach(x=>x.classList.remove('sel'));this.classList.add('sel');};apDiv.appendChild(s);});
 document.getElementById('new-name').addEventListener('keypress',function(e){if(e.key==='Enter'){document.getElementById('new-pin').focus();}});
 document.getElementById('new-pin').addEventListener('keypress',function(e){if(e.key==='Enter')createProfile();});
+document.getElementById('family-code').addEventListener('keypress',function(e){if(e.key==='Enter')connectFamily();});
+
+// Show sync indicator on map
+const origRenderMap=renderMap;
+renderMap=function(){
+  origRenderMap();
+  if(useFirebase)document.getElementById('map-name').textContent+=' ☁️';
+};
 </script>
 </body>
 </html>
