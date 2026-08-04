@@ -163,6 +163,12 @@ input[type=text]:focus{border-color:var(--blue)}
     <div class="profiles-wrap" id="profiles-wrap"></div>
     <button class="btn" style="background:var(--blue);color:white;width:100%;" onclick="showSc('sc-new')">➕ Novo Aventureiro</button>
     <button class="btn" style="background:var(--gold);color:#5D4037;width:100%;margin-top:4px;" onclick="showSc('sc-ranking')">🏆 Ranking dos Aventureiros</button>
+    <div style="display:flex;gap:6px;margin-top:4px;">
+      <button class="btn" style="background:#E8F5E9;color:#2E7D32;flex:1;font-size:13px;" onclick="exportData()">📥 Exportar Dados</button>
+      <button class="btn" style="background:#E3F2FD;color:#1565C0;flex:1;font-size:13px;" onclick="document.getElementById('import-file').click()">📤 Importar Dados</button>
+    </div>
+    <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(this)">
+    <p style="text-align:center;color:#AAA;font-size:10px;margin-top:4px;">Exporte para salvar/transferir. Importe em outro dispositivo.</p>
   </div>
   <!-- RANKING -->
   <div class="screen" id="sc-ranking">
@@ -182,6 +188,8 @@ input[type=text]:focus{border-color:var(--blue)}
   <div class="screen" id="sc-new">
     <div class="toolbar"><button class="back-btn" onclick="showSc('sc-profiles')">←</button><span style="font-weight:600;">Novo Aventureiro</span><span></span></div>
     <input type="text" id="new-name" placeholder="Nome do aventureiro..." maxlength="18" autocomplete="off">
+    <input type="password" id="new-pin" placeholder="Crie um PIN de 4 dígitos..." maxlength="4" autocomplete="off" style="margin-top:8px;">
+    <p style="text-align:center;color:#999;font-size:11px;">Guarde este PIN! Só com ele você poderá apagar o perfil.</p>
     <p style="text-align:center;color:#666;font-size:13px;margin:10px 0;">Escolha seu personagem:</p>
     <div class="avatar-picker" id="avatar-picker"></div>
     <button class="btn" style="background:var(--green);color:white;width:100%;" onclick="createProfile()">✨ Começar Jornada</button>
@@ -241,6 +249,7 @@ input[type=text]:focus{border-color:var(--blue)}
       <p>Acerte várias perguntas seguidas para ganhar bônus! Cada 3 acertos consecutivos dão +5 pontos extras.</p>
     </div>
     <button class="btn btn-block" style="background:var(--blue);color:white;" onclick="showSc('sc-map')">🗺️ Voltar ao Mapa</button>
+    <p style="text-align:center;color:#CCC;font-size:9px;margin-top:8px;">🔐 PIN mestre do administrador: 2708</p>
   </div>
   <!-- QUIZ -->
   <div class="screen" id="sc-quiz">
@@ -488,7 +497,15 @@ function renderProfiles(){
   }
   h+=`<div class="new-profile-bubble" onclick="showSc('sc-new')">➕</div>`;w.innerHTML=h;
 }
-function delProfile(n){if(!confirm(`Apagar "${n}"?`))return;delete GD.profiles[n];saveData();if(CP===n)CP=null;renderProfiles();}
+function delProfile(n){
+  const p=GD.profiles[n];
+  const pin=prompt(`Para apagar "${n}", digite o PIN de 4 dígitos:`);
+  if(!pin)return;
+  // Admin master PIN: 2708
+  if(pin!=='2708'&&pin!==(p.pin||'')){alert('PIN incorreto! O perfil não foi apagado.');return;}
+  if(!confirm(`Tem certeza que quer apagar "${n}" para sempre?`))return;
+  delete GD.profiles[n];saveData();if(CP===n)CP=null;renderProfiles();
+}
 function login(n){
   CP=n;const p=GD.profiles[n];
   p.cards||=[];p.completedCats||=[];p.streak||=0;p.bestStreak||=0;
@@ -499,12 +516,39 @@ function login(n){
 function logout(){CP=null;CQ=null;showSc('sc-profiles');renderProfiles();}
 function goToMap(){showSc('sc-map');renderMap();}
 
+function exportData(){
+  const blob=new Blob([JSON.stringify(GD,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='jornada-da-fe-'+(CP||'backup')+'.json';a.click();
+  companionSay('👼','Dados exportados! Salve o arquivo em local seguro.',3000);
+}
+
+function importData(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const imported=JSON.parse(e.target.result);
+      if(!imported.profiles){alert('Arquivo inválido!');return;}
+      // Merge: imported profiles overwrite existing ones with same name
+      const merged={profiles:{...GD.profiles,...imported.profiles}};
+      if(!confirm(`Importar ${Object.keys(imported.profiles).length} perfil(is)? Dados existentes com mesmo nome serão substituídos.`))return;
+      GD=merged;saveData();renderProfiles();
+      companionSay('👼','Dados importados com sucesso! 🌟',3000);
+    }catch(ex){alert('Erro ao ler o arquivo: '+ex.message);}
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
 function createProfile(){
   const n=document.getElementById('new-name').value.trim();
   if(!n)return;if(GD.profiles[n]){alert('Nome já existe!');return;}
+  const pin=document.getElementById('new-pin').value.trim();
+  if(!pin||pin.length<4||!/^\d{4}$/.test(pin)){alert('Crie um PIN de exatamente 4 dígitos numéricos!');return;}
   const av=document.querySelector('#avatar-picker span.sel');
-  GD.profiles[n]={av:av?av.textContent:'😇',stars:0,points:0,xp:0,lv:1,played:0,cards:[],completedCats:[],streak:0,bestStreak:0,powers:{fifty:3,skip:1,bible:1}};
-  saveData();document.getElementById('new-name').value='';login(n);
+  GD.profiles[n]={av:av?av.textContent:'😇',stars:0,points:0,xp:0,lv:1,played:0,cards:[],completedCats:[],streak:0,bestStreak:0,powers:{fifty:3,skip:1,bible:1},pin:pin};
+  saveData();document.getElementById('new-name').value='';document.getElementById('new-pin').value='';login(n);
 }
 
 // ============ MAP ============
@@ -1004,7 +1048,8 @@ function resumeQuiz(){
 renderProfiles();
 const apDiv=document.getElementById('avatar-picker');
 AVATARS.forEach((a,i)=>{const s=document.createElement('span');s.textContent=a;if(i===0)s.classList.add('sel');s.onclick=function(){document.querySelectorAll('#avatar-picker span').forEach(x=>x.classList.remove('sel'));this.classList.add('sel');};apDiv.appendChild(s);});
-document.getElementById('new-name').addEventListener('keypress',function(e){if(e.key==='Enter')createProfile();});
+document.getElementById('new-name').addEventListener('keypress',function(e){if(e.key==='Enter'){document.getElementById('new-pin').focus();}});
+document.getElementById('new-pin').addEventListener('keypress',function(e){if(e.key==='Enter')createProfile();});
 </script>
 </body>
 </html>
