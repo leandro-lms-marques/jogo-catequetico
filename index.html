@@ -541,9 +541,8 @@ function setupSync(){
   // Listen for remote changes
   firebaseRef.child('profiles').on('value',snap=>{
     const remote=snap.val()||{};
-    const local=JSON.parse(localStorage.getItem(STORAGE)||'{"profiles":{}}');
-    // Merge: newest wins
-    GD={profiles:{...local.profiles,...remote}};
+    // Remote is the source of truth for deletions
+    GD={profiles:{...remote}};
     localStorage.setItem(STORAGE,JSON.stringify(GD));
     if(document.getElementById('sc-profiles').classList.contains('active'))renderProfiles();
     if(document.getElementById('sc-ranking').classList.contains('active'))renderRanking();
